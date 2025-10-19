@@ -32,13 +32,33 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
   }
 
   Future<void> _handleRoleRedirect() async {
-    // Pequeña pausa para mostrar la pantalla de redirección
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    // Verificar inmediatamente si hay conflicto de plataforma
+    final hasConflict = (widget.userRole == 'ADMINISTRADOR' && !kIsWeb) || 
+                       (widget.userRole == 'REPARTIDOR' && kIsWeb);
+    
+    if (hasConflict) {
+      // Si hay conflicto, mostrar mensaje inmediatamente
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } else {
+      // Si no hay conflicto, pequeña pausa y redirigir
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        // Auto-redirigir a la pantalla correcta
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _redirectToCorrectPlatform();
+          }
+        });
+      }
     }
   }
 
