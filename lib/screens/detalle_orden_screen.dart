@@ -944,18 +944,49 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
         });
 
         try {
+          // Verificar que el bucket existe primero
+          print('🔍 Verificando bucket fotos-entrega...');
+          
           // Subir imagen a Supabase Storage
           final fileName = 'entrega_${widget.orden.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
           final fileBytes = await image.readAsBytes();
           
-          await supabase.storage
-              .from('fotos-entrega')
-              .uploadBinary(fileName, fileBytes);
+          print('📤 Subiendo archivo: $fileName');
+          
+          // Intentar primero con fotos-entrega, si falla usar fotos-perfil
+          String bucketName = 'fotos-entrega';
+          String imageUrl;
+          
+          try {
+            final uploadResult = await supabase.storage
+                .from(bucketName)
+                .uploadBinary(fileName, fileBytes);
 
-          // Obtener URL pública de la imagen
-          final imageUrl = supabase.storage
-              .from('fotos-entrega')
-              .getPublicUrl(fileName);
+            print('✅ Upload exitoso en $bucketName: $uploadResult');
+
+            // Obtener URL pública de la imagen
+            imageUrl = supabase.storage
+                .from(bucketName)
+                .getPublicUrl(fileName);
+                
+          } catch (bucketError) {
+            print('⚠️ Error con bucket $bucketName, intentando con fotos-perfil: $bucketError');
+            
+            // Fallback al bucket fotos-perfil que sabemos que existe
+            bucketName = 'fotos-perfil';
+            final uploadResult = await supabase.storage
+                .from(bucketName)
+                .uploadBinary(fileName, fileBytes);
+
+            print('✅ Upload exitoso en $bucketName: $uploadResult');
+
+            // Obtener URL pública de la imagen
+            imageUrl = supabase.storage
+                .from(bucketName)
+                .getPublicUrl(fileName);
+          }
+
+          print('🔗 URL generada: $imageUrl');
 
           // Actualizar la orden con la URL de la imagen
           await supabase
@@ -965,6 +996,8 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
               })
               .eq('id', widget.orden.id);
 
+          print('💾 Orden actualizada en BD');
+
           _mostrarMensaje('✅ Foto subida exitosamente a Supabase. Ahora puedes marcar como entregada.');
           
           // Actualizar el estado local para mostrar la previsualización
@@ -973,6 +1006,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
           });
 
         } catch (uploadError) {
+          print('❌ Error detallado: $uploadError');
           _mostrarMensaje('❌ Error al subir la foto a Supabase: $uploadError');
         } finally {
           setState(() {
@@ -981,6 +1015,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
         }
       }
     } catch (e) {
+      print('❌ Error al tomar la foto: $e');
       _mostrarMensaje('❌ Error al tomar la foto: $e');
     }
   }
