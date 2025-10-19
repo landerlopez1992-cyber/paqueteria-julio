@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
+import '../widgets/profile_avatar.dart';
 
 class DetalleRepartidorScreen extends StatefulWidget {
   final Map<String, dynamic> repartidor;
@@ -241,17 +242,11 @@ class _DetalleRepartidorScreenState extends State<DetalleRepartidorScreen> {
                   Center(
                     child: Stack(
                       children: [
-                        CircleAvatar(
+                        ProfileAvatar(
+                          fotoUrl: widget.repartidor['foto_perfil'],
+                          nombre: widget.repartidor['nombre']?.toString() ?? 'Repartidor',
                           radius: 40,
-                          backgroundColor: const Color(0xFF4CAF50),
-                          child: Text(
-                            widget.repartidor['nombre']?.toString().substring(0, 1).toUpperCase() ?? 'R',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          fontSize: 24,
                         ),
                         if (_isEditing)
                           Positioned(

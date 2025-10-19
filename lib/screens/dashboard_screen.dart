@@ -17,7 +17,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 3; // Por defecto seleccionar "Órdenes"
+  int _selectedIndex = 4; // Por defecto seleccionar "Órdenes"
 
   final List<Map<String, dynamic>> _menuItems = [
     {

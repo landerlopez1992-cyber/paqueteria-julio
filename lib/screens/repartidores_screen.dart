@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import 'detalle_repartidor_screen.dart';
+import '../widgets/profile_avatar.dart';
 
 class RepartidoresScreen extends StatefulWidget {
   const RepartidoresScreen({super.key});
@@ -76,7 +77,7 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
         try {
           final response = await supabase
               .from('usuarios')
-              .select('id, auth_id, email, nombre, rol, telefono, direccion, provincias_asignadas, tipo_vehiculo, created_at')
+              .select('id, auth_id, email, nombre, rol, telefono, direccion, provincias_asignadas, tipo_vehiculo, foto_perfil, created_at')
               .eq('rol', 'REPARTIDOR')
               .order('created_at', ascending: false);
 
@@ -611,15 +612,10 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
                             return Card(
                               margin: const EdgeInsets.only(bottom: 12),
                               child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: const Color(0xFF4CAF50),
-                                  child: Text(
-                                    repartidor['nombre']?.toString().substring(0, 1).toUpperCase() ?? 'R',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                leading: ProfileAvatar(
+                                  fotoUrl: repartidor['foto_perfil'],
+                                  nombre: repartidor['nombre']?.toString() ?? 'Repartidor',
+                                  radius: 20,
                                 ),
                                 title: Text(
                                   repartidor['nombre'] ?? 'Sin nombre',
