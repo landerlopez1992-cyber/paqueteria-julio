@@ -38,6 +38,9 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
   // Variables de pago
   bool _requierePago = false;
   String _moneda = 'CUP'; // 'USD' o 'CUP'
+  
+  // Cantidad de bultos
+  int _cantidadBultos = 1;
 
   @override
   void initState() {
@@ -246,6 +249,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
         'repartidor_nombre': repartidorNombre,
         'notas': _notasController.text.trim().isEmpty ? null : _notasController.text.trim(),
         'es_urgente': _esUrgente,
+        'cantidad_bultos': _cantidadBultos,
         'creado_por_nombre': 'Administrador', // TODO: Obtener del usuario actual
         'requiere_pago': _requierePago,
         'monto_cobrar': montoCobrar,
@@ -1243,6 +1247,69 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
                     color: _esUrgente ? const Color(0xFFDC2626) : const Color(0xFF666666),
                     fontWeight: _esUrgente ? FontWeight.w500 : FontWeight.normal,
                   ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Selector de cantidad de bultos
+          Row(
+            children: [
+              const Icon(
+                Icons.inventory_2,
+                color: Color(0xFF4CAF50),
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Cantidad de bultos:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF2C2C2C),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFF4CAF50)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove, size: 20),
+                      color: const Color(0xFF4CAF50),
+                      onPressed: _cantidadBultos > 1
+                          ? () {
+                              setState(() {
+                                _cantidadBultos--;
+                              });
+                            }
+                          : null,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        _cantidadBultos.toString(),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2C2C2C),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add, size: 20),
+                      color: const Color(0xFF4CAF50),
+                      onPressed: () {
+                        setState(() {
+                          _cantidadBultos++;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],

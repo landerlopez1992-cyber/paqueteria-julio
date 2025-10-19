@@ -20,6 +20,9 @@ class Orden {
   final bool esUrgente;
   final String? fotoEntrega;
   
+  // Cantidad de bultos
+  final int cantidadBultos;
+  
   // Campos de pago
   final bool requierePago;
   final double montoCobrar;
@@ -49,6 +52,7 @@ class Orden {
     this.repartidor,
     this.esUrgente = false,
     this.fotoEntrega,
+    this.cantidadBultos = 1,
     this.requierePago = false,
     this.montoCobrar = 0.0,
     this.moneda = 'CUP',
@@ -86,6 +90,7 @@ class Orden {
       repartidor: json['repartidor_nombre'],
       esUrgente: json['es_urgente'] ?? false,
       fotoEntrega: json['foto_entrega'],
+      cantidadBultos: json['cantidad_bultos'] ?? 1,
       requierePago: json['requiere_pago'] ?? false,
       montoCobrar: (json['monto_cobrar'] ?? 0.0).toDouble(),
       moneda: json['moneda'] ?? 'CUP',
@@ -120,6 +125,7 @@ class Orden {
       'repartidor': repartidor,
       'esUrgente': esUrgente,
       'fotoEntrega': fotoEntrega,
+      'cantidadBultos': cantidadBultos,
       'requierePago': requierePago,
       'montoCobrar': montoCobrar,
       'moneda': moneda,

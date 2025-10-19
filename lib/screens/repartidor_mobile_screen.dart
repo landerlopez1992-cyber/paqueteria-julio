@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../main.dart';
 import '../models/orden.dart';
 import 'repartidor_perfil_screen.dart';
@@ -13,7 +14,7 @@ class RepartidorMobileScreen extends StatefulWidget {
   State<RepartidorMobileScreen> createState() => _RepartidorMobileScreenState();
 }
 
-class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
+class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   String _filtroEstado = 'ACTIVAS';
   List<Orden> _ordenes = [];
@@ -25,6 +26,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _searchController.addListener(_filtrarOrdenes);
     // Cargar datos de forma asíncrona sin bloquear el hilo principal
     Future.microtask(() async {
@@ -32,6 +34,23 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
       await _cargarConfiguracionFoto();
       await _cargarOrdenes();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Recargar órdenes cuando la app vuelve a estar activa
+      print('🔄 App resumida - Recargando órdenes...');
+      _cargarOrdenes();
+    }
   }
 
   Future<void> _cargarConfiguracionFoto() async {
@@ -53,11 +72,6 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 
   Future<void> _obtenerNombreRepartidor() async {
     try {
@@ -628,6 +642,8 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
               _buildInfoRow(Icons.person_outline, 'Para:', orden.receptor),
               const SizedBox(height: 4),
               _buildInfoRow(Icons.location_on, 'Dirección:', orden.direccionDestino),
+              const SizedBox(height: 4),
+              _buildInfoRow(Icons.inventory_2, 'Bultos:', orden.cantidadBultos.toString()),
 
               if (orden.requierePago) ...[
                 const SizedBox(height: 6),

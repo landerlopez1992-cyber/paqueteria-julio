@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/orden.dart';
-import '../widgets/shared_layout.dart';
 
 class VerOrdenScreen extends StatelessWidget {
   final Orden orden;
@@ -176,6 +175,14 @@ class VerOrdenScreen extends StatelessWidget {
               ),
               Expanded(
                 child: _buildInfoItem('Tipo', orden.esUrgente ? 'Urgente' : 'Normal'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoItemWithIcon('Cantidad de Bultos', orden.cantidadBultos.toString(), Icons.inventory_2, const Color(0xFF4CAF50)),
               ),
             ],
           ),

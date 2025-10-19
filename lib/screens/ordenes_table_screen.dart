@@ -5,7 +5,6 @@ import 'crear_orden_screen.dart';
 import 'editar_orden_screen.dart';
 import 'ver_orden_screen.dart';
 import '../widgets/shared_layout.dart';
-import '../services/configuracion_service.dart';
 
 class OrdenesTableScreen extends StatefulWidget {
   const OrdenesTableScreen({super.key});
@@ -1103,6 +1102,7 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
                   DataColumn(label: SizedBox(width: 50, child: Text(''))),
                   DataColumn(label: SizedBox(width: 100, child: Text('NÚMERO'))),
                   DataColumn(label: SizedBox(width: 120, child: Text('Acciones'))),
+                  DataColumn(label: SizedBox(width: 80, child: Text('BULTOS'))),
                   DataColumn(label: SizedBox(width: 120, child: Text('Repartidor Asignado'))),
                   DataColumn(label: SizedBox(width: 140, child: Text('EMISOR'))),
                   DataColumn(label: SizedBox(width: 140, child: Text('DESTINATARIO'))),
@@ -1191,6 +1191,38 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
             child: GestureDetector(
               onTap: () {}, // Detener propagación del evento
               child: _buildActionButtons(orden),
+            ),
+          ),
+        ),
+        DataCell(
+          SizedBox(
+            width: 80,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF4CAF50)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.inventory_2,
+                    size: 14,
+                    color: Color(0xFF4CAF50),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    orden.cantidadBultos.toString(),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4CAF50),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
