@@ -32,11 +32,20 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
   }
 
   Future<void> _handleRoleRedirect() async {
+    // DEBUG: Mostrar valores
+    print('🔍 DEBUG RoleRedirect:');
+    print('   - userRole: ${widget.userRole}');
+    print('   - kIsWeb: $kIsWeb');
+    print('   - Plataforma: ${kIsWeb ? "WEB" : "MÓVIL"}');
+    
     // Verificar inmediatamente si hay conflicto de plataforma
     final hasConflict = (widget.userRole == 'ADMINISTRADOR' && !kIsWeb) || 
                        (widget.userRole == 'REPARTIDOR' && kIsWeb);
     
+    print('   - hasConflict: $hasConflict');
+    
     if (hasConflict) {
+      print('⚠️ CONFLICTO DETECTADO: Mostrando mensaje');
       // Si hay conflicto, mostrar mensaje inmediatamente
       if (mounted) {
         setState(() {
@@ -44,6 +53,7 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
         });
       }
     } else {
+      print('✅ NO HAY CONFLICTO: Auto-redirigiendo');
       // Si no hay conflicto, pequeña pausa y redirigir
       await Future.delayed(const Duration(milliseconds: 500));
       
