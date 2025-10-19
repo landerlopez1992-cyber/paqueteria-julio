@@ -318,7 +318,7 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
                     children: [
                       // Logo de la empresa
                       Image.asset(
-                        'assets/logo julio.png',
+                        'assets/logo_julio.png',
                         width: 220,
                         height: 220,
                         fit: BoxFit.contain,

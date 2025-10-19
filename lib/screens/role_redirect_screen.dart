@@ -169,7 +169,7 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
                   children: [
                     // Logo (EXACTO como en login)
                     Image.asset(
-                      'assets/logo julio.png',
+                          'assets/logo_julio.png',
                       width: 150,
                       height: 150,
                       fit: BoxFit.contain,

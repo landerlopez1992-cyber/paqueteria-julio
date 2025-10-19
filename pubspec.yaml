@@ -100,7 +100,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/logo julio.png"
+  image_path: "assets/logo_julio.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/logo julio.png"
+  adaptive_icon_foreground: "assets/logo_julio.png"
   remove_alpha_ios: true

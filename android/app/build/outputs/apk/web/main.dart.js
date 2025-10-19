@@ -100709,7 +100709,7 @@ Cr(a,b){var s=null,r=this.c
 r.toString
 A.fw(s,s,!0,s,new A.aAA(b,a),r,s,!0,t.z)},
 Kl(a){return this.Cr(a,null)},
-L(a){var s,r,q,p,o=this,n=null,m=A.X(12),l=A.aQm("assets/logo julio.png",B.p9,220,220),k=A.S("J Alvarez Express SVC",n,n,n,A.cl(n,n,B.a8,n,n,n,n,n,n,n,n,20,n,n,B.a6,n,n,!0,n,n,n,n,n,n,n,n),B.bF,n,n),j=A.S("Sistema de Paqueter\xeda",n,n,n,A.cl(n,n,B.a_,n,n,n,n,n,n,n,n,14,n,n,n,n,n,!0,n,n,n,n,n,n,n,n),B.bF,n,n),i=A.X(10)
+L(a){var s,r,q,p,o=this,n=null,m=A.X(12),l=A.aQm("assets/logo_julio.png",B.p9,220,220),k=A.S("J Alvarez Express SVC",n,n,n,A.cl(n,n,B.a8,n,n,n,n,n,n,n,n,20,n,n,B.a6,n,n,!0,n,n,n,n,n,n,n,n),B.bF,n,n),j=A.S("Sistema de Paqueter\xeda",n,n,n,A.cl(n,n,B.a_,n,n,n,n,n,n,n,n,14,n,n,n,n,n,!0,n,n,n,n,n,n,n,n),B.bF,n,n),i=A.X(10)
 i=A.a7(n,A.S("\u26a1 Powered by Supabase",n,n,n,A.cl(n,n,B.e,n,n,n,n,n,n,n,n,10,n,n,B.a6,n,n,!0,n,n,n,n,n,n,n,n),n,n,n),B.k,n,n,new A.a8(B.r,n,n,i,n,n,B.p),n,n,n,B.KR,n,n,n)
 s=A.cl(n,n,B.a_,n,n,n,n,n,n,n,n,14,n,n,n,n,n,!0,n,n,n,n,n,n,n,n)
 s=A.cF(!1,o.e,A.f4(n,new A.bM(4,A.X(8),B.aF),n,B.cH,n,n,n,n,!0,new A.bM(4,A.X(8),B.aF),n,n,n,n,n,n,n,n,n,n,n,new A.bM(4,A.X(8),B.dt),n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,s,"Email",!0,!0,n,B.Ml,n,n,n,n,n,n,n,n,n,n,n,n),n,n,B.fy,1,!1,n,n,new A.aAC())
@@ -101869,7 +101869,7 @@ case 1:return A.w(p.at(-1),r)}})
 return A.y($async$wH,r)},
 acv(){var s=this.c
 if(s!=null)A.bm(s,!1).FA(A.eQ(new A.aEW(),null,t.z),new A.aEX())},
-L(a){var s,r,q,p,o=this,n=null,m=A.X(12),l=t.p,k=A.b([A.aQm("assets/logo julio.png",B.p9,150,150),B.T,B.a35,B.bY,B.a4A,B.fx],l)
+L(a){var s,r,q,p,o=this,n=null,m=A.X(12),l=t.p,k=A.b([A.aQm("assets/logo_julio.png",B.p9,150,150),B.T,B.a35,B.bY,B.a4A,B.fx],l)
 if(o.d)B.b.O(k,A.b([B.HY,B.a9,B.a3R],l))
 else{s=A.b([],l)
 r=o.a.c
