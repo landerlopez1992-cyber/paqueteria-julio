@@ -668,40 +668,40 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
                                           ),
                                   ],
                                 ),
-                                trailing: PopupMenuButton<String>(
-                                  onSelected: (value) {
-                                    if (value == 'view') {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => DetalleRepartidorScreen(
-                                            repartidor: repartidor,
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Botón de eliminar más visible
+                                    IconButton(
+                                      onPressed: () => _deleteRepartidor(repartidor['id']),
+                                      icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                                      tooltip: 'Eliminar repartidor',
+                                    ),
+                                    // Menú de opciones
+                                    PopupMenuButton<String>(
+                                      onSelected: (value) {
+                                        if (value == 'view') {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => DetalleRepartidorScreen(
+                                                repartidor: repartidor,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        const PopupMenuItem(
+                                          value: 'view',
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.visibility, color: Color(0xFF1976D2), size: 18),
+                                              SizedBox(width: 8),
+                                              Text('Ver detalles', style: TextStyle(color: Color(0xFF1976D2))),
+                                            ],
                                           ),
                                         ),
-                                      );
-                                    } else if (value == 'delete') {
-                                      _deleteRepartidor(repartidor['id']);
-                                    }
-                                  },
-                                  itemBuilder: (context) => [
-                                    const PopupMenuItem(
-                                      value: 'view',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.visibility, color: Color(0xFF1976D2), size: 18),
-                                          SizedBox(width: 8),
-                                          Text('Ver detalles', style: TextStyle(color: Color(0xFF1976D2))),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'delete',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.delete, color: Colors.red, size: 18),
-                                          SizedBox(width: 8),
-                                          Text('Eliminar', style: TextStyle(color: Colors.red)),
-                                        ],
-                                      ),
+                                      ],
                                     ),
                                   ],
                                 ),
