@@ -42,6 +42,7 @@ class AppColors {
   static const Color primary = Color(0xFF1976D2); // Azul principal
   static const Color accent = Color(0xFFFF9800); // Naranja de acento (igual que botonPrincipal)
   static const Color success = Color(0xFF4CAF50); // Verde para éxito (igual que exito)
+  static const Color warning = Color(0xFFFFC107); // Amarillo para advertencias
   static const Color bordeClaro = Color(0xFFE0E0E0); // Alias de borde
   
   // PROHIBIDO usar:

@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'screens/login_supabase_screen.dart';
-// import 'screens/login_repartidor_screen.dart'; // No se usa actualmente
-import 'screens/dashboard_screen.dart';
-import 'screens/repartidor_mobile_screen.dart';
+import 'screens/role_redirect_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +53,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
   bool _isLoading = true;
   bool _isAuthenticated = false;
   String _userRole = '';
+  String _userName = '';
+  String? _userEmail;
 
   @override
   void initState() {
@@ -81,7 +81,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       // Verificar si hay una sesión activa
       final session = supabase.auth.currentSession;
       
-      if (session != null && session.user != null) {
+      if (session != null) {
         // Verificar si la sesión no ha expirado
         final now = DateTime.now();
         final expiresAt = DateTime.fromMillisecondsSinceEpoch(session.expiresAt! * 1000);
@@ -124,10 +124,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _loadUserRole(String userId) async {
     try {
-      // Obtener el rol del usuario desde la base de datos
+      // Obtener el rol y nombre del usuario desde la base de datos
       final userData = await supabase
           .from('usuarios')
-          .select('rol')
+          .select('rol, nombre, email')
           .eq('id', userId)
           .single();
       
@@ -135,6 +135,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
         setState(() {
           _isAuthenticated = true;
           _userRole = userData['rol']?.toString().toUpperCase() ?? 'REPARTIDOR';
+          _userName = userData['nombre'] ?? 'Usuario';
+          _userEmail = userData['email'];
           _isLoading = false;
         });
       }
@@ -145,7 +147,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         if (user?.email != null) {
           final userData = await supabase
               .from('usuarios')
-              .select('rol')
+              .select('rol, nombre, email')
               .eq('email', user!.email!)
               .single();
           
@@ -153,6 +155,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
             setState(() {
               _isAuthenticated = true;
               _userRole = userData['rol']?.toString().toUpperCase() ?? 'REPARTIDOR';
+              _userName = userData['nombre'] ?? 'Usuario';
+              _userEmail = userData['email'];
               _isLoading = false;
             });
           }
@@ -186,12 +190,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
     }
 
     if (_isAuthenticated) {
-      // Redirigir según el rol del usuario
-      if (_userRole == 'REPARTIDOR') {
-        return const RepartidorMobileScreen();
-      } else {
-        return DashboardScreen(userRole: _userRole);
-      }
+      // Usar la pantalla de redirección de roles para validar plataforma
+      return RoleRedirectScreen(
+        userRole: _userRole,
+        userName: _userName,
+        userEmail: _userEmail,
+      );
     } else {
       // Mostrar login de administrador por defecto
       return const LoginSupabaseScreen();
