@@ -953,38 +953,19 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
           
           print('📤 Subiendo archivo: $fileName');
           
-          // Intentar primero con fotos-entrega, si falla usar fotos-perfil
-          String bucketName = 'fotos-entrega';
-          String imageUrl;
+          // Usar directamente el bucket fotos-perfil que ya existe
+          const String bucketName = 'fotos-perfil';
           
-          try {
-            final uploadResult = await supabase.storage
-                .from(bucketName)
-                .uploadBinary(fileName, fileBytes);
+          final uploadResult = await supabase.storage
+              .from(bucketName)
+              .uploadBinary(fileName, fileBytes);
 
-            print('✅ Upload exitoso en $bucketName: $uploadResult');
+          print('✅ Upload exitoso en $bucketName: $uploadResult');
 
-            // Obtener URL pública de la imagen
-            imageUrl = supabase.storage
-                .from(bucketName)
-                .getPublicUrl(fileName);
-                
-          } catch (bucketError) {
-            print('⚠️ Error con bucket $bucketName, intentando con fotos-perfil: $bucketError');
-            
-            // Fallback al bucket fotos-perfil que sabemos que existe
-            bucketName = 'fotos-perfil';
-            final uploadResult = await supabase.storage
-                .from(bucketName)
-                .uploadBinary(fileName, fileBytes);
-
-            print('✅ Upload exitoso en $bucketName: $uploadResult');
-
-            // Obtener URL pública de la imagen
-            imageUrl = supabase.storage
-                .from(bucketName)
-                .getPublicUrl(fileName);
-          }
+          // Obtener URL pública de la imagen
+          final imageUrl = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(fileName);
 
           print('🔗 URL generada: $imageUrl');
 
