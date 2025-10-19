@@ -123,31 +123,12 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
               children: [
                 const SizedBox(height: 40),
                 
-                // Logo sin cuadro blanco
-                SizedBox(
+                // Logo (igual que en login_supabase_screen.dart)
+                Image.asset(
+                  'assets/logo julio.png',
                   width: 150,
                   height: 150,
-                  child: Image.asset(
-                    'assets/logo julio.png',
-                    width: 150,
-                    height: 150,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Icon(
-                          Icons.local_shipping,
-                          size: 70,
-                          color: Colors.white,
-                        ),
-                      );
-                    },
-                  ),
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 20),
 
