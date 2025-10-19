@@ -422,54 +422,147 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: tieneFoto ? const Color(0xFF4CAF50) : const Color(0xFFFF9800),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                tieneFoto ? Icons.check_circle : Icons.camera_alt,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    tieneFoto ? 'Foto de entrega tomada' : 'Foto de entrega requerida',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: tieneFoto ? const Color(0xFF4CAF50) : const Color(0xFFFF9800),
+            // Header con icono y texto
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: tieneFoto ? const Color(0xFF4CAF50) : const Color(0xFFFF9800),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    tieneFoto ? Icons.check_circle : Icons.camera_alt,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tieneFoto ? 'Foto de entrega tomada' : 'Foto de entrega requerida',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: tieneFoto ? const Color(0xFF4CAF50) : const Color(0xFFFF9800),
+                        ),
+                      ),
+                      Text(
+                        tieneFoto ? 'Ya puedes marcar como entregada' : 'Debes tomar una foto antes de entregar',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF666666),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!tieneFoto)
+                  TextButton(
+                    onPressed: _tomarFotoEntrega,
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFF1976D2),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Tomar Foto',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                   ),
+              ],
+            ),
+            
+            // Previsualización de la foto si existe
+            if (tieneFoto) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    _fotoEntregaUrl!,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: const Color(0xFFF5F5F5),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF1976D2),
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: const Color(0xFFF5F5F5),
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: Color(0xFF666666),
+                                size: 32,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Error al cargar la imagen',
+                                style: TextStyle(
+                                  color: Color(0xFF666666),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Text(
-                    tieneFoto ? 'Ya puedes marcar como entregada' : 'Debes tomar una foto antes de entregar',
-                    style: const TextStyle(
+                    'Foto tomada exitosamente',
+                    style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF666666),
+                      color: const Color(0xFF4CAF50),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _tomarFotoEntrega,
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF1976D2),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    ),
+                    child: const Text(
+                      'Tomar Nueva Foto',
+                      style: TextStyle(fontSize: 12),
                     ),
                   ),
                 ],
               ),
-            ),
-            if (!tieneFoto)
-              TextButton(
-                onPressed: _tomarFotoEntrega,
-                child: const Text(
-                  'Tomar Foto',
-                  style: TextStyle(
-                    color: Color(0xFF1976D2),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+            ],
           ],
         ),
       ),
