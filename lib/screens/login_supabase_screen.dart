@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // Para kIsWeb
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import 'role_redirect_screen.dart';
@@ -51,7 +52,36 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String userName = userData['nombre'] ?? 'Usuario';
             String? userEmail = userData['email'];
             
-            // Navegar a RoleRedirectScreen para validar plataforma
+            // ✅ VALIDAR PLATAFORMA ANTES DE NAVEGAR
+            if (userRole == 'REPARTIDOR' && kIsWeb) {
+              // 🚫 REPARTIDOR intentando acceder desde WEB - BLOQUEADO
+              await supabase.auth.signOut(); // Cerrar sesión inmediatamente
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+                _showErrorDialog(
+                  'Como repartidor, debes usar la aplicación móvil.\n\nDescarga la app desde la tienda de aplicaciones para acceder a tus órdenes.',
+                  'Acceso Denegado',
+                );
+              }
+              return;
+            } else if (userRole == 'ADMINISTRADOR' && !kIsWeb) {
+              // 🚫 ADMINISTRADOR intentando acceder desde MÓVIL - BLOQUEADO
+              await supabase.auth.signOut(); // Cerrar sesión inmediatamente
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+                _showErrorDialog(
+                  'Como administrador, debes acceder desde un navegador web.\n\nVisita: landerlopez1992-cyber.github.io/paqueteria-julio/',
+                  'Acceso Denegado',
+                );
+              }
+              return;
+            }
+            
+            // ✅ Plataforma correcta - Navegar a RoleRedirectScreen
             if (mounted) {
               Future.microtask(() {
                 if (mounted) {
@@ -86,7 +116,36 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String userRole = userData['rol']?.toString().toUpperCase() ?? '';
             String userName = userData['nombre'] ?? 'Usuario';
             
-            // Navegar a RoleRedirectScreen para validar plataforma
+            // ✅ VALIDAR PLATAFORMA ANTES DE NAVEGAR
+            if (userRole == 'REPARTIDOR' && kIsWeb) {
+              // 🚫 REPARTIDOR intentando acceder desde WEB - BLOQUEADO
+              await supabase.auth.signOut(); // Cerrar sesión inmediatamente
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+                _showErrorDialog(
+                  'Como repartidor, debes usar la aplicación móvil.\n\nDescarga la app desde la tienda de aplicaciones para acceder a tus órdenes.',
+                  'Acceso Denegado',
+                );
+              }
+              return;
+            } else if (userRole == 'ADMINISTRADOR' && !kIsWeb) {
+              // 🚫 ADMINISTRADOR intentando acceder desde MÓVIL - BLOQUEADO
+              await supabase.auth.signOut(); // Cerrar sesión inmediatamente
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+                _showErrorDialog(
+                  'Como administrador, debes acceder desde un navegador web.\n\nVisita: landerlopez1992-cyber.github.io/paqueteria-julio/',
+                  'Acceso Denegado',
+                );
+              }
+              return;
+            }
+            
+            // ✅ Plataforma correcta - Navegar a RoleRedirectScreen
             if (mounted) {
               Future.microtask(() {
                 if (mounted) {
@@ -128,7 +187,36 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String userName = response.user!.email?.split('@')[0] ?? 'Usuario';
             String? userEmail = response.user!.email;
 
-            // Navegar a RoleRedirectScreen para validar plataforma
+            // ✅ VALIDAR PLATAFORMA ANTES DE NAVEGAR
+            if (rol == 'REPARTIDOR' && kIsWeb) {
+              // 🚫 REPARTIDOR intentando acceder desde WEB - BLOQUEADO
+              await supabase.auth.signOut(); // Cerrar sesión inmediatamente
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+                _showErrorDialog(
+                  'Como repartidor, debes usar la aplicación móvil.\n\nDescarga la app desde la tienda de aplicaciones para acceder a tus órdenes.',
+                  'Acceso Denegado',
+                );
+              }
+              return;
+            } else if (rol == 'ADMINISTRADOR' && !kIsWeb) {
+              // 🚫 ADMINISTRADOR intentando acceder desde MÓVIL - BLOQUEADO
+              await supabase.auth.signOut(); // Cerrar sesión inmediatamente
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+                _showErrorDialog(
+                  'Como administrador, debes acceder desde un navegador web.\n\nVisita: landerlopez1992-cyber.github.io/paqueteria-julio/',
+                  'Acceso Denegado',
+                );
+              }
+              return;
+            }
+
+            // ✅ Plataforma correcta - Navegar a RoleRedirectScreen
             if (mounted) {
               Future.microtask(() {
                 if (mounted) {
@@ -170,13 +258,13 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
     }
   }
 
-  void _showErrorDialog(String message) {
+  void _showErrorDialog(String message, [String? title]) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFFFFFFFF),
         title: Text(
-          'Error de Login',
+          title ?? 'Error de Login',
           style: TextStyle(
             color: const Color(0xFF2C2C2C),
             fontSize: 18,
