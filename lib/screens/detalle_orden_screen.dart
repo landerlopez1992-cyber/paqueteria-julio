@@ -20,12 +20,34 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
   bool _isLoading = false;
   bool _fotoEntregaObligatoria = true; // Por defecto activado
   String? _fotoEntregaUrl; // URL de la foto tomada localmente
+  late Orden _ordenActual; // Orden que se actualiza localmente
 
   @override
   void initState() {
     super.initState();
+    _ordenActual = widget.orden; // Copiar la orden inicial
     _fotoEntregaUrl = widget.orden.fotoEntrega; // Inicializar con la foto existente
     _cargarConfiguracionFoto();
+  }
+  
+  // Recargar la orden desde Supabase
+  Future<void> _recargarOrden() async {
+    try {
+      final response = await supabase
+          .from('ordenes')
+          .select()
+          .eq('id', widget.orden.id)
+          .single();
+      
+      setState(() {
+        _ordenActual = Orden.fromJson(response);
+        _fotoEntregaUrl = _ordenActual.fotoEntrega;
+      });
+      
+      print('✅ Orden recargada - Pagado: ${_ordenActual.pagado}, Foto: ${_fotoEntregaUrl != null}');
+    } catch (e) {
+      print('❌ Error al recargar orden: $e');
+    }
   }
 
   Future<void> _cargarConfiguracionFoto() async {
@@ -852,15 +874,18 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
 
 
   void _marcarComoEntregado() async {
+    // Recargar orden para tener datos más recientes
+    await _recargarOrden();
+    
     // 🔍 VALIDACIÓN COMPLETA ANTES DE ENTREGAR
     List<String> errores = [];
     
     // DEBUG: Ver cantidad de bultos
-    print('🔍 DEBUG - Cantidad de bultos: ${widget.orden.cantidadBultos}');
+    print('🔍 DEBUG - Cantidad de bultos: ${_ordenActual.cantidadBultos}');
     print('🔍 DEBUG - Foto obligatoria: $_fotoEntregaObligatoria');
     print('🔍 DEBUG - Tiene foto: ${_fotoEntregaUrl != null && _fotoEntregaUrl!.isNotEmpty}');
-    print('🔍 DEBUG - Requiere pago: ${widget.orden.requierePago}');
-    print('🔍 DEBUG - Pagado: ${widget.orden.pagado}');
+    print('🔍 DEBUG - Requiere pago: ${_ordenActual.requierePago}');
+    print('🔍 DEBUG - Pagado: ${_ordenActual.pagado}');
     
     // 1. Validar foto obligatoria (si está activa)
     if (_fotoEntregaObligatoria && (_fotoEntregaUrl == null || _fotoEntregaUrl!.isEmpty)) {
@@ -868,18 +893,18 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
     }
 
     // 2. Validar pago pendiente (si requiere pago)
-    if (widget.orden.requierePago && !widget.orden.pagado) {
-      final simbolo = widget.orden.moneda == 'USD' ? '\$' : '\$';
-      errores.add('💰 Falta cobrar ${simbolo}${widget.orden.montoCobrar.toStringAsFixed(2)} ${widget.orden.moneda}');
+    if (_ordenActual.requierePago && !_ordenActual.pagado) {
+      final simbolo = _ordenActual.moneda == 'USD' ? '\$' : '\$';
+      errores.add('💰 Falta cobrar ${simbolo}${_ordenActual.montoCobrar.toStringAsFixed(2)} ${_ordenActual.moneda}');
     }
 
     print('🔍 DEBUG - Errores encontrados: ${errores.length}');
-    print('🔍 DEBUG - ¿Debe preguntar por bultos? ${widget.orden.cantidadBultos > 1}');
+    print('🔍 DEBUG - ¿Debe preguntar por bultos? ${_ordenActual.cantidadBultos > 1}');
 
     // 3. Mostrar diálogo de confirmación de bultos (solo si hay más de 1)
     if (errores.isEmpty) {
       // Solo preguntar por bultos si hay 2 o más
-      if (widget.orden.cantidadBultos > 1) {
+      if (_ordenActual.cantidadBultos > 1) {
         print('✅ Mostrando diálogo de confirmación de bultos');
         final confirmado = await _mostrarDialogoConfirmacionBultos();
         if (!confirmado) {
@@ -1191,12 +1216,10 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             })
             .eq('id', widget.orden.id);
         
-        _mostrarMensaje('✅ Dinero cobrado registrado. Ahora puedes entregar la orden.');
+        // Recargar la orden para reflejar el cambio
+        await _recargarOrden();
         
-        // Actualizar el estado local
-        setState(() {
-          // La orden se actualizará cuando se recargue desde la base de datos
-        });
+        _mostrarMensaje('✅ Dinero cobrado registrado. Ahora puedes entregar la orden.');
         
       } catch (e) {
         _mostrarMensaje('Error al registrar el cobro: $e');
@@ -1441,6 +1464,30 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Mostrar cantidad de bultos como recordatorio
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1976D2).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF1976D2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.inventory_2, color: Color(0xFF1976D2), size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Esta orden tiene ${_ordenActual.cantidadBultos} ${_ordenActual.cantidadBultos == 1 ? 'bulto' : 'bultos'}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1976D2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             const Text(
               '⚠️ Debes completar lo siguiente:',
               style: TextStyle(
