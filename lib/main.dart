@@ -170,7 +170,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         }
       } catch (e2) {
         // Si el usuario no existe en la tabla usuarios, crearlo automáticamente
-        await _createUserIfNotExists(user);
+        await _createUserIfNotExists(supabase.auth.currentUser);
       }
     }
   }
@@ -220,6 +220,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         });
       }
     } catch (e3) {
+      print('Error creando usuario: $e3');
       // Si todo falla, usar valores por defecto
       if (mounted) {
         setState(() {

@@ -306,26 +306,36 @@ class _SharedLayoutState extends State<SharedLayout> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: isSelected ? Colors.white.withOpacity(0.1) : Colors.transparent,
+        color: isSelected ? Colors.white.withValues(alpha: 0.1) : Colors.transparent,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: ListTile(
-        leading: Icon(
-          item['icon'],
-          color: Colors.white,
-          size: 20,
-        ),
-        title: Text(
-          item['title'],
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+      child: InkWell(
+        onTap: () => _navigateToScreen(item['route']),
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                item['icon'],
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  item['title'],
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
-        onTap: () => _navigateToScreen(item['route']),
-        dense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
     );
   }
