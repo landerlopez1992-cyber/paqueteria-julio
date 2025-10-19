@@ -91,10 +91,22 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
       });
     } catch (e) {
       print('Error al inicializar chat: $e');
+      
+      // FIX TEMPORAL: Si las tablas no existen, mostrar mensaje de error
       if (mounted) {
         setState(() {
           _cargando = false;
+          _nombreRepartidor = 'Repartidor';
         });
+        
+        // Mostrar mensaje de error al usuario
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Chat temporalmente no disponible. Ejecuta el SQL en Supabase.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 5),
+          ),
+        );
       }
     }
   }

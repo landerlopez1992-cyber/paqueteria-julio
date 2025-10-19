@@ -62,10 +62,22 @@ class _ChatAdminScreenState extends State<ChatAdminScreen> {
       }
     } catch (e) {
       print('Error al cargar conversaciones: $e');
+      
+      // FIX TEMPORAL: Si las tablas no existen, mostrar estado vacío
       if (mounted) {
         setState(() {
+          _conversaciones = [];
           _cargando = false;
         });
+        
+        // Mostrar mensaje de error al usuario
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Chat temporalmente no disponible. Ejecuta el SQL en Supabase.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 5),
+          ),
+        );
       }
     }
   }
