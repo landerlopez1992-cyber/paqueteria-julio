@@ -850,24 +850,39 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
 
 
   void _marcarComoEntregado() async {
-    // Si la foto es obligatoria, verificar si ya tiene foto
+    // 🔍 VALIDACIÓN COMPLETA ANTES DE ENTREGAR
+    List<String> errores = [];
+    
+    // 1. Validar foto obligatoria (si está activa)
     if (_fotoEntregaObligatoria && (_fotoEntregaUrl == null || _fotoEntregaUrl!.isEmpty)) {
-      _mostrarErrorFotoObligatoria();
-      return;
+      errores.add('📷 Falta tomar la foto de entrega');
     }
 
-    // Si la orden requiere pago, verificar que se haya cobrado
+    // 2. Validar pago pendiente (si requiere pago)
     if (widget.orden.requierePago && !widget.orden.pagado) {
-      _mostrarDialogoCobroObligatorio();
+      final simbolo = widget.orden.moneda == 'USD' ? '\$' : '\$';
+      errores.add('💰 Falta cobrar ${simbolo}${widget.orden.montoCobrar.toStringAsFixed(2)} ${widget.orden.moneda}');
+    }
+
+    // 3. Mostrar diálogo de confirmación de bultos
+    if (errores.isEmpty) {
+      final confirmado = await _mostrarDialogoConfirmacionBultos();
+      if (!confirmado) {
+        return; // Usuario canceló
+      }
+    } else {
+      // Hay errores - mostrar diálogo de errores
+      _mostrarDialogoErroresEntrega(errores);
       return;
     }
 
-    final confirmado = await _mostrarConfirmacion(
+    // Todo validado - proceder con la entrega
+    final confirmadoFinal = await _mostrarConfirmacion(
       'Confirmar Entrega',
       '¿Estás seguro de que quieres marcar esta orden como entregada?',
     );
     
-    if (confirmado) {
+    if (confirmadoFinal) {
       setState(() {
         _isLoading = true;
       });
@@ -881,7 +896,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             })
             .eq('id', widget.orden.id);
         
-        _mostrarMensaje('Orden marcada como entregada');
+        _mostrarMensaje('✅ Orden entregada exitosamente');
         Navigator.pop(context, true); // Regresar con resultado
       } catch (e) {
         _mostrarMensaje('Error al actualizar la orden: $e');
@@ -1247,5 +1262,273 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
       print('❌ Error al tomar la foto: $e');
       _mostrarMensaje('❌ Error al tomar la foto: $e');
     }
+  }
+
+  // 🔍 NUEVO: Diálogo de confirmación de bultos
+  Future<bool> _mostrarDialogoConfirmacionBultos() async {
+    final resultado = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // No se puede cerrar tocando afuera
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFFFFFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.inventory_2, color: Color(0xFF1976D2), size: 24),
+            SizedBox(width: 12),
+            Text(
+              'Verificar Bultos',
+              style: TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '📦 Antes de marcar como entregada, verifica:',
+              style: TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1976D2).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF1976D2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Cantidad de Bultos:',
+                    style: TextStyle(
+                      color: Color(0xFF666666),
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${widget.orden.cantidadBultos} ${widget.orden.cantidadBultos == 1 ? 'bulto' : 'bultos'}',
+                    style: const TextStyle(
+                      color: Color(0xFF1976D2),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 16),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '¿Entregaste todos los bultos correctamente?',
+                      style: TextStyle(
+                        color: Color(0xFF2C2C2C),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF666666),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              'Sí, Todos Entregados',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    return resultado ?? false;
+  }
+
+  // 🚨 NUEVO: Diálogo de errores antes de entregar
+  void _mostrarDialogoErroresEntrega(List<String> errores) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFFFFFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.error_outline, color: Color(0xFFDC2626), size: 24),
+            SizedBox(width: 12),
+            Text(
+              'No se puede entregar',
+              style: TextStyle(
+                color: Color(0xFFDC2626),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '⚠️ Debes completar lo siguiente:',
+              style: TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...errores.map((error) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDC2626).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFDC2626).withOpacity(0.3)),
+                ),
+                child: Text(
+                  error,
+                  style: const TextStyle(
+                    color: Color(0xFF2C2C2C),
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            )),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1976D2).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Color(0xFF1976D2), size: 16),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Completa los pendientes antes de marcar como entregada',
+                      style: TextStyle(
+                        color: Color(0xFF1976D2),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          // Botón para tomar foto (si falta foto)
+          if (errores.any((e) => e.contains('foto')))
+            TextButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _tomarFotoEntrega();
+              },
+              icon: const Icon(Icons.camera_alt, size: 18),
+              label: const Text('Tomar Foto'),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF1976D2),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ),
+          // Botón para cobrar (si falta pago)
+          if (errores.any((e) => e.contains('cobrar')))
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _marcarDineroCobrado();
+              },
+              icon: const Icon(Icons.attach_money, size: 18),
+              label: const Text('Cobrar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4CAF50),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          // Botón cerrar
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF666666),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text(
+              'Cerrar',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
