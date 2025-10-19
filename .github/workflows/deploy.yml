@@ -31,7 +31,7 @@ jobs:
       run: flutter pub get
       
     - name: Build Web 🌐
-      run: flutter build web --release
+      run: flutter build web --release --base-href "/paqueteria-julio/" --web-renderer html
       
     - name: Setup Pages 🚀
       uses: actions/configure-pages@v4
