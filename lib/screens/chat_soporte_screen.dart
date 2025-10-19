@@ -55,7 +55,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
       final conversaciones = await supabase
           .from('conversaciones_soporte')
           .select('id')
-          .eq('repartidor_id', user.id)
+          .eq('repartidor_auth_id', user.id)
           .eq('estado', 'ABIERTA')
           .limit(1);
 
@@ -64,7 +64,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
         final nuevaConversacion = await supabase
             .from('conversaciones_soporte')
             .insert({
-          'repartidor_id': user.id,
+          'repartidor_auth_id': user.id,
           'estado': 'ABIERTA',
         }).select('id').single();
 
@@ -117,7 +117,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
     try {
       final mensajes = await supabase
           .from('mensajes_soporte')
-          .select('*, usuarios!remitente_id(nombre, rol)')
+          .select('*')
           .eq('conversacion_id', _conversacionId!)
           .order('created_at', ascending: true);
 
@@ -149,10 +149,10 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
             value: _conversacionId,
           ),
           callback: (payload) async {
-            // Obtener el mensaje completo con la información del usuario
+            // Obtener el mensaje completo
             final nuevoMensaje = await supabase
                 .from('mensajes_soporte')
-                .select('*, usuarios!remitente_id(nombre, rol)')
+                .select('*')
                 .eq('id', payload.newRecord['id'])
                 .single();
 
@@ -164,7 +164,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
               
               // Marcar como leído si no es del usuario actual
               final user = supabase.auth.currentUser;
-              if (user != null && nuevoMensaje['remitente_id'] != user.id) {
+              if (user != null && nuevoMensaje['remitente_auth_id'] != user.id) {
                 _marcarComoLeidos();
               }
             }
@@ -182,7 +182,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
           .from('mensajes_soporte')
           .update({'leido': true})
           .eq('conversacion_id', _conversacionId!)
-          .neq('remitente_id', user.id)
+          .neq('remitente_auth_id', user.id)
           .eq('leido', false);
     } catch (e) {
       print('Error al marcar mensajes como leídos: $e');
@@ -212,7 +212,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
         final nuevaConversacion = await supabase
             .from('conversaciones_soporte')
             .insert({
-          'repartidor_id': user.id,
+          'repartidor_auth_id': user.id,
           'estado': 'ABIERTA',
         }).select('id').single();
 
@@ -222,7 +222,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
         // Reintentar enviar el mensaje
         await supabase.from('mensajes_soporte').insert({
           'conversacion_id': _conversacionId,
-          'remitente_id': user.id,
+          'remitente_auth_id': user.id,
           'mensaje': mensaje,
           'leido': false,
         });
@@ -252,7 +252,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
       print('📤 Enviando mensaje...');
       await supabase.from('mensajes_soporte').insert({
         'conversacion_id': _conversacionId,
-        'remitente_id': user.id,
+        'remitente_auth_id': user.id,
         'mensaje': mensaje,
         'leido': false,
       });
@@ -344,9 +344,9 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
                           itemBuilder: (context, index) {
                             final mensaje = _mensajes[index];
                             final user = supabase.auth.currentUser;
-                            final esMio = mensaje['remitente_id'] == user?.id;
-                            final nombreRemitente = mensaje['usuarios']?['nombre'] ?? 'Usuario';
-                            final rolRemitente = mensaje['usuarios']?['rol'] ?? '';
+                            final esMio = mensaje['remitente_auth_id'] == user?.id;
+                            final nombreRemitente = esMio ? _nombreRepartidor : 'Administrador';
+                            final rolRemitente = esMio ? 'REPARTIDOR' : 'ADMINISTRADOR';
                             final esAdmin = rolRemitente == 'ADMINISTRADOR';
 
                             return _buildMensajeBurbuja(
