@@ -19,12 +19,12 @@ class DetalleOrdenScreen extends StatefulWidget {
 class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
   bool _isLoading = false;
   bool _fotoEntregaObligatoria = true; // Por defecto activado
-  late Orden _ordenActual; // Orden local que se puede actualizar
+  String? _fotoEntregaUrl; // URL de la foto tomada localmente
 
   @override
   void initState() {
     super.initState();
-    _ordenActual = _ordenActual; // Inicializar orden local
+    _fotoEntregaUrl = widget.orden.fotoEntrega; // Inicializar con la foto existente
     _cargarConfiguracionFoto();
   }
 
@@ -52,12 +52,12 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: Text('Orden #${_ordenActual.numeroOrden}'),
+        title: Text('Orden #${widget.orden.numeroOrden}'),
         backgroundColor: const Color(0xFF2C3E50),
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          if (_ordenActual.estado != 'ENTREGADO' && _ordenActual.estado != 'CANCELADA')
+          if (widget.orden.estado != 'ENTREGADO' && widget.orden.estado != 'CANCELADA')
             IconButton(
               onPressed: _mostrarOpciones,
               icon: const Icon(Icons.more_vert),
@@ -82,7 +82,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             const SizedBox(height: 12),
             
             // Card de pago (si aplica)
-            if (_ordenActual.requierePago) ...[
+            if (widget.orden.requierePago) ...[
               _buildPaymentCard(),
               const SizedBox(height: 12),
             ],
@@ -92,11 +92,11 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             const SizedBox(height: 20), // Más espacio antes de los botones
             
             // Indicador de foto obligatoria
-            if (_ordenActual.estado != 'ENTREGADO' && _ordenActual.estado != 'CANCELADA' && _fotoEntregaObligatoria)
+            if (widget.orden.estado != 'ENTREGADO' && widget.orden.estado != 'CANCELADA' && _fotoEntregaObligatoria)
               _buildFotoIndicator(),
             
             // Botones de acción
-            if (_ordenActual.estado != 'ENTREGADO' && _ordenActual.estado != 'CANCELADA')
+            if (widget.orden.estado != 'ENTREGADO' && widget.orden.estado != 'CANCELADA')
               _buildActionButtons(),
               
             // Espacio extra al final para evitar que se obstruyan los botones
@@ -128,23 +128,23 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
                     color: Color(0xFF2C2C2C),
                   ),
                 ),
-                _buildStatusChip(_ordenActual.estado),
+                _buildStatusChip(widget.orden.estado),
               ],
             ),
             const SizedBox(height: 16),
             
-            _buildInfoRow(Icons.confirmation_number, 'Número de Orden', '#${_ordenActual.numeroOrden}'),
+            _buildInfoRow(Icons.confirmation_number, 'Número de Orden', '#${widget.orden.numeroOrden}'),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.person, 'Emisor', _ordenActual.emisor),
+            _buildInfoRow(Icons.person, 'Emisor', widget.orden.emisor),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.person_outline, 'Destinatario', _ordenActual.receptor),
+            _buildInfoRow(Icons.person_outline, 'Destinatario', widget.orden.receptor),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.location_on, 'Dirección', _ordenActual.direccionDestino),
+            _buildInfoRow(Icons.location_on, 'Dirección', widget.orden.direccionDestino),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.schedule, 'Fecha de Creación', _formatearFecha(_ordenActual.fechaCreacion)),
-            if (_ordenActual.fechaEntrega != null) ...[
+            _buildInfoRow(Icons.schedule, 'Fecha de Creación', _formatearFecha(widget.orden.fechaCreacion)),
+            if (widget.orden.fechaEntrega != null) ...[
               const SizedBox(height: 8),
-              _buildInfoRow(Icons.local_shipping, 'Fecha de Entrega', _formatearFecha(_ordenActual.fechaEntrega)),
+              _buildInfoRow(Icons.local_shipping, 'Fecha de Entrega', _formatearFecha(widget.orden.fechaEntrega)),
             ],
           ],
         ),
@@ -172,7 +172,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             ),
             const SizedBox(height: 16),
             
-            if (_ordenActual.telefonoDestinatario != null && _ordenActual.telefonoDestinatario!.isNotEmpty) ...[
+            if (widget.orden.telefonoDestinatario != null && widget.orden.telefonoDestinatario!.isNotEmpty) ...[
               Row(
                 children: [
                   const Icon(Icons.phone, color: Color(0xFF1976D2), size: 20),
@@ -190,7 +190,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
                           ),
                         ),
                         Text(
-                          _ordenActual.telefonoDestinatario!,
+                          widget.orden.telefonoDestinatario!,
                           style: const TextStyle(
                             fontSize: 16,
                             color: Color(0xFF2C2C2C),
@@ -206,7 +206,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
-                      onPressed: () => _llamarDestinatario(_ordenActual.telefonoDestinatario!),
+                      onPressed: () => _llamarDestinatario(widget.orden.telefonoDestinatario!),
                       icon: const Icon(Icons.call, color: Colors.white, size: 20),
                       style: IconButton.styleFrom(
                         padding: const EdgeInsets.all(12),
@@ -256,13 +256,13 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             ),
             const SizedBox(height: 16),
             
-            _buildInfoRow(Icons.location_city, 'Ciudad', _ordenActual.ciudadDestino ?? 'No especificada'),
+            _buildInfoRow(Icons.location_city, 'Ciudad', widget.orden.ciudadDestino ?? 'No especificada'),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.description, 'Descripción', _ordenActual.descripcion),
+            _buildInfoRow(Icons.description, 'Descripción', widget.orden.descripcion),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.scale, 'Peso', '${_ordenActual.peso ?? 0} kg'),
+            _buildInfoRow(Icons.scale, 'Peso', '${widget.orden.peso ?? 0} kg'),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.straighten, 'Dimensiones', '${_ordenActual.largo ?? 0} x ${_ordenActual.ancho ?? 0} x ${_ordenActual.alto ?? 0} cm'),
+            _buildInfoRow(Icons.straighten, 'Dimensiones', '${widget.orden.largo ?? 0} x ${widget.orden.ancho ?? 0} x ${widget.orden.alto ?? 0} cm'),
           ],
         ),
       ),
@@ -312,7 +312,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
                         ),
                       ),
                       Text(
-                        '${_ordenActual.moneda == 'USD' ? '\$' : '\$'} ${_ordenActual.montoCobrar.toStringAsFixed(2)} ${_ordenActual.moneda}',
+                        '${widget.orden.moneda == 'USD' ? '\$' : '\$'} ${widget.orden.montoCobrar.toStringAsFixed(2)} ${widget.orden.moneda}',
                         style: const TextStyle(
                           fontSize: 20,
                           color: Color(0xFF4CAF50),
@@ -359,7 +359,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
 
   Widget _buildStatusTimeline() {
     final estados = ['POR ENVIAR', 'EN TRANSITO', 'ENTREGADO'];
-    final estadoActual = _ordenActual.estado;
+    final estadoActual = widget.orden.estado;
     final indiceActual = estados.indexOf(estadoActual);
     
     return Column(
@@ -414,7 +414,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
   }
 
   Widget _buildFotoIndicator() {
-    final tieneFoto = _ordenActual.fotoEntrega != null && _ordenActual.fotoEntrega!.isNotEmpty;
+    final tieneFoto = _fotoEntregaUrl != null && _fotoEntregaUrl!.isNotEmpty;
     
     return Card(
       elevation: 3,
@@ -677,8 +677,8 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
               color: const Color(0xFF4CAF50),
               onTap: () {
                 Navigator.pop(context);
-                if (_ordenActual.telefonoDestinatario != null && _ordenActual.telefonoDestinatario!.isNotEmpty) {
-                  _llamarDestinatario(_ordenActual.telefonoDestinatario!);
+                if (widget.orden.telefonoDestinatario != null && widget.orden.telefonoDestinatario!.isNotEmpty) {
+                  _llamarDestinatario(widget.orden.telefonoDestinatario!);
                 } else {
                   _mostrarMensaje('No hay teléfono disponible');
                 }
@@ -758,7 +758,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
 
   void _marcarComoEntregado() async {
     // Si la foto es obligatoria, verificar si ya tiene foto
-    if (_fotoEntregaObligatoria && (_ordenActual.fotoEntrega == null || _ordenActual.fotoEntrega!.isEmpty)) {
+    if (_fotoEntregaObligatoria && (_fotoEntregaUrl == null || _fotoEntregaUrl!.isEmpty)) {
       _mostrarErrorFotoObligatoria();
       return;
     }
@@ -780,7 +780,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
               'estado': 'ENTREGADO',
               'fecha_entrega': DateTime.now().toIso8601String(),
             })
-            .eq('id', _ordenActual.id);
+            .eq('id', widget.orden.id);
         
         _mostrarMensaje('Orden marcada como entregada');
         Navigator.pop(context, true); // Regresar con resultado
@@ -811,7 +811,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             .update({
               'estado': 'EN TRANSITO',
             })
-            .eq('id', _ordenActual.id);
+            .eq('id', widget.orden.id);
         
         _mostrarMensaje('Orden marcada como en tránsito');
         Navigator.pop(context, true); // Regresar con resultado
@@ -950,7 +950,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
           print('🔍 Verificando bucket fotos-entrega...');
           
           // Subir imagen a Supabase Storage
-          final fileName = 'entrega_${_ordenActual.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final fileName = 'entrega_${widget.orden.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
           final fileBytes = await image.readAsBytes();
           
           print('📤 Subiendo archivo: $fileName');
@@ -977,7 +977,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
               .update({
                 'foto_entrega': imageUrl,
               })
-              .eq('id', _ordenActual.id);
+              .eq('id', widget.orden.id);
 
           print('💾 Orden actualizada en BD');
 
@@ -985,33 +985,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
           
           // Actualizar el estado local para mostrar la previsualización
           setState(() {
-            _ordenActual = Orden(
-              id: _ordenActual.id,
-              numeroOrden: _ordenActual.numeroOrden,
-              emisor: _ordenActual.emisor,
-              receptor: _ordenActual.receptor,
-              descripcion: _ordenActual.descripcion,
-              direccionDestino: _ordenActual.direccionDestino,
-              telefonoDestinatario: _ordenActual.telefonoDestinatario,
-              ciudadDestino: _ordenActual.ciudadDestino,
-              peso: _ordenActual.peso,
-              largo: _ordenActual.largo,
-              ancho: _ordenActual.ancho,
-              alto: _ordenActual.alto,
-              estado: _ordenActual.estado,
-              fechaCreacion: _ordenActual.fechaCreacion,
-              fechaEntrega: _ordenActual.fechaEntrega,
-              notas: _ordenActual.notas,
-              repartidor: _ordenActual.repartidor,
-              esUrgente: _ordenActual.esUrgente,
-              fotoEntrega: imageUrl, // Actualizar con la nueva URL
-              requierePago: _ordenActual.requierePago,
-              montoCobrar: _ordenActual.montoCobrar,
-              moneda: _ordenActual.moneda,
-              pagado: _ordenActual.pagado,
-              fechaPago: _ordenActual.fechaPago,
-              notasPago: _ordenActual.notasPago,
-            );
+            _fotoEntregaUrl = imageUrl; // Actualizar con la nueva URL
           });
 
         } catch (uploadError) {
