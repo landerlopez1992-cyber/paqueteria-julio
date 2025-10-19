@@ -864,11 +864,14 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
       errores.add('💰 Falta cobrar ${simbolo}${widget.orden.montoCobrar.toStringAsFixed(2)} ${widget.orden.moneda}');
     }
 
-    // 3. Mostrar diálogo de confirmación de bultos
+    // 3. Mostrar diálogo de confirmación de bultos (solo si hay más de 1)
     if (errores.isEmpty) {
-      final confirmado = await _mostrarDialogoConfirmacionBultos();
-      if (!confirmado) {
-        return; // Usuario canceló
+      // Solo preguntar por bultos si hay 2 o más
+      if (widget.orden.cantidadBultos > 1) {
+        final confirmado = await _mostrarDialogoConfirmacionBultos();
+        if (!confirmado) {
+          return; // Usuario canceló
+        }
       }
     } else {
       // Hay errores - mostrar diálogo de errores
