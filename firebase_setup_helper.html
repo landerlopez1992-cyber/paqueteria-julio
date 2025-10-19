@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Ayudante de Configuración Firebase</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .step:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.2em;
+        }
+        
+        .step-title {
+            display: inline-block;
+            font-size: 1.4em;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .step-content {
+            margin-left: 55px;
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        .link-box {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 2px dashed #667eea;
+        }
+        
+        .link-box a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+            word-break: break-all;
+        }
+        
+        .link-box a:hover {
+            text-decoration: underline;
+        }
+        
+        .code-box {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .checklist {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .checklist-item {
+            padding: 10px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+            border-radius: 5px;
+        }
+        
+        .checklist-item:hover {
+            background: #e9ecef;
+        }
+        
+        .checklist-item input {
+            margin-right: 10px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+        
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        
+        .final-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .final-box h2 {
+            margin-bottom: 15px;
+        }
+        
+        .final-box .code-box {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Setup Helper</h1>
+        <p class="subtitle">Guía visual paso a paso para configurar Firebase</p>
+        
+        <div class="step">
+            <span class="step-number">1</span>
+            <span class="step-title">Abre Firebase Console</span>
+            <div class="step-content">
+                <p>Primero, necesitas acceder a la consola de Firebase:</p>
+                <div class="link-box">
+                    <span class="emoji">🌐</span>
+                    <a href="https://console.firebase.google.com/" target="_blank">
+                        https://console.firebase.google.com/
+                    </a>
+                </div>
+                <p>Inicia sesión con tu cuenta de Google si aún no lo has hecho.</p>
+            </div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">2</span>
+            <span class="step-title">Crear Proyecto Firebase</span>
+            <div class="step-content">
+                <p>En la consola de Firebase:</p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>Haz clic en <strong>"Agregar proyecto"</strong> o <strong>"Add project"</strong></li>
+                    <li>Nombre del proyecto: <code>paqueteria-app</code> (o el que prefieras)</li>
+                    <li>Acepta los términos y condiciones</li>
+                    <li>(Opcional) Desactiva Google Analytics si no lo necesitas</li>
+                    <li>Haz clic en <strong>"Crear proyecto"</strong></li>
+                </ol>
+                <div class="warning">
+                    <strong>⚠️ Nota:</strong> Espera a que el proyecto se cree completamente (puede tardar 1-2 minutos).
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">3</span>
+            <span class="step-title">Registrar App Web</span>
+            <div class="step-content">
+                <p>Una vez creado el proyecto:</p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>Haz clic en el ícono <strong>Web</strong> <code>&lt;/&gt;</code></li>
+                    <li>Nombre de la app: <code>Paquetería Web App</code></li>
+                    <li>✅ Marca la opción <strong>"Also set up Firebase Hosting"</strong></li>
+                    <li>Haz clic en <strong>"Registrar app"</strong></li>
+                </ol>
+                <div class="success">
+                    <strong>✅ Importante:</strong> Copia el objeto <code>firebaseConfig</code> que aparece. 
+                    Lo necesitarás más adelante. Guárdalo en un archivo de texto temporal.
+                </div>
+                <div class="code-box">
+                    <pre>// Ejemplo de lo que verás:
+const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "paqueteria-app.firebaseapp.com",
+  projectId: "paqueteria-app",
+  storageBucket: "paqueteria-app.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef"
+};</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">4</span>
+            <span class="step-title">Activar Firestore Database</span>
+            <div class="step-content">
+                <p>En el menú lateral de Firebase Console:</p>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>Haz clic en <strong>"Firestore Database"</strong></li>
+                    <li>Haz clic en <strong>"Create database"</strong></li>
+                    <li>Selecciona <strong>"Start in test mode"</strong> (modo de prueba)</li>
+                    <li>Selecciona la región más cercana a ti (ej: <code>us-central</code>)</li>
+                    <li>Haz clic en <strong>"Enable"</strong></li>
+                </ol>
+                <div class="warning">
+                    <strong>⚠️ Modo de prueba:</strong> Permite acceso sin autenticación por 30 días. 
+                    Perfecto para desarrollo, pero recuerda cambiar las reglas en producción.
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">5</span>
+            <span class="step-title">Crear Colecciones (Tablas)</span>
+            <div class="step-content">
+                <p>Necesitas crear 3 colecciones. Para cada una:</p>
+                
+                <h3 style="margin-top: 20px; color: #667eea;">📋 Colección: emisores</h3>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>Haz clic en <strong>"Start collection"</strong></li>
+                    <li>Collection ID: <code>emisores</code></li>
+                    <li>Agrega un documento con estos campos:</li>
+                </ol>
+                <div class="code-box">
+                    <pre>nombre: "Juan Pérez"
+telefono: "555-1234"
+direccion: "Calle A #100"
+email: "juan@email.com"
+createdAt: [timestamp - selecciona fecha actual]</pre>
+                </div>
+                
+                <h3 style="margin-top: 20px; color: #667eea;">📋 Colección: receptores</h3>
+                <div class="code-box">
+                    <pre>nombre: "María González"
+telefono: "555-3456"
+direccion: "Calle X #400"
+email: "maria@email.com"
+createdAt: [timestamp - selecciona fecha actual]</pre>
+                </div>
+                
+                <h3 style="margin-top: 20px; color: #667eea;">📦 Colección: ordenes</h3>
+                <div class="code-box">
+                    <pre>emisorNombre: "Juan Pérez"
+receptorNombre: "María González"
+descripcion: "Paquete de documentos"
+direccionDestino: "Calle Principal #123"
+estado: "EN TRANSITO"
+fechaCreacion: [timestamp - selecciona fecha actual]
+fechaEntrega: null
+observaciones: ""
+createdBy: "Super-Admin"</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">6</span>
+            <span class="step-title">Ejecutar Script de Configuración</span>
+            <div class="step-content">
+                <p>Ahora que tienes todo listo en Firebase, configura tu app Flutter:</p>
+                <div class="code-box">
+                    <button class="copy-btn" onclick="copyCode('terminal-code')">Copiar</button>
+                    <pre id="terminal-code">cd "/Users/cubcolexpress/Desktop/julio pauqteria sotfware/paqueteria_app"
+./configure_firebase.sh</pre>
+                </div>
+                <p style="margin-top: 15px;">El script te pedirá los datos del <code>firebaseConfig</code> que copiaste en el Paso 3.</p>
+            </div>
+        </div>
+        
+        <div class="checklist">
+            <h2 style="margin-bottom: 20px;">📋 Checklist de Verificación</h2>
+            <div class="checklist-item" onclick="toggleCheck(this)">
+                <input type="checkbox" id="check1">
+                <label for="check1">Proyecto Firebase creado</label>
+            </div>
+            <div class="checklist-item" onclick="toggleCheck(this)">
+                <input type="checkbox" id="check2">
+                <label for="check2">App Web registrada en Firebase</label>
+            </div>
+            <div class="checklist-item" onclick="toggleCheck(this)">
+                <input type="checkbox" id="check3">
+                <label for="check3">firebaseConfig copiado y guardado</label>
+            </div>
+            <div class="checklist-item" onclick="toggleCheck(this)">
+                <input type="checkbox" id="check4">
+                <label for="check4">Firestore Database activado (Test mode)</label>
+            </div>
+            <div class="checklist-item" onclick="toggleCheck(this)">
+                <input type="checkbox" id="check5">
+                <label for="check5">Colección "emisores" creada con documento de ejemplo</label>
+            </div>
+            <div class="checklist-item" onclick="toggleCheck(this)">
+                <input type="checkbox" id="check6">
+                <label for="check6">Colección "receptores" creada con documento de ejemplo</label>
+            </div>
+            <div class="checklist-item" onclick="toggleCheck(this)">
+                <input type="checkbox" id="check7">
+                <label for="check7">Colección "ordenes" creada con documento de ejemplo</label>
+            </div>
+            <div class="checklist-item" onclick="toggleCheck(this)">
+                <input type="checkbox" id="check8">
+                <label for="check8">Script configure_firebase.sh ejecutado correctamente</label>
+            </div>
+        </div>
+        
+        <div class="final-box">
+            <h2>🎉 ¡Ya estás listo!</h2>
+            <p style="margin-bottom: 20px;">Ejecuta tu aplicación con:</p>
+            <div class="code-box">
+                <button class="copy-btn" onclick="copyCode('run-code')">Copiar</button>
+                <pre id="run-code">flutter run -d chrome</pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleCheck(element) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+        }
+        
+        function copyCode(id) {
+            const code = document.getElementById(id).textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copiado!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Flutter Web (Chrome)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "deviceId": "chrome",
+            "args": [
+                "--web-port=8080",
+                "--web-hostname=localhost"
+            ],
+            "console": "debugConsole",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Flutter Web (Edge)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "deviceId": "edge",
+            "args": [
+                "--web-port=8080",
+                "--web-hostname=localhost"
+            ],
+            "console": "debugConsole",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Flutter Web (Safari)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "deviceId": "safari",
+            "args": [
+                "--web-port=8080",
+                "--web-hostname=localhost"
+            ],
+            "console": "debugConsole",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Flutter Web (Debug)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "deviceId": "chrome",
+            "args": [
+                "--web-port=8080",
+                "--web-hostname=localhost",
+                "--dart-define=FLUTTER_WEB_USE_SKIA=true"
+            ],
+            "console": "debugConsole",
+            "cwd": "${workspaceFolder}",
+            "flutterMode": "debug"
+        },
+        {
+            "name": "Flutter Web (Release)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "deviceId": "chrome",
+            "args": [
+                "--web-port=8080",
+                "--web-hostname=localhost"
+            ],
+            "console": "debugConsole",
+            "cwd": "${workspaceFolder}",
+            "flutterMode": "release"
+        }
+    ]
+}
