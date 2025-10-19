@@ -5,6 +5,12 @@ class Orden {
   final String receptor;
   final String descripcion;
   final String direccionDestino;
+  final String? telefonoDestinatario;
+  final String? ciudadDestino;
+  final double? peso;
+  final double? largo;
+  final double? ancho;
+  final double? alto;
   String estado;
   final DateTime fechaCreacion;
   DateTime? fechaEntrega;
@@ -28,6 +34,12 @@ class Orden {
     required this.receptor,
     required this.descripcion,
     required this.direccionDestino,
+    this.telefonoDestinatario,
+    this.ciudadDestino,
+    this.peso,
+    this.largo,
+    this.ancho,
+    this.alto,
     required this.estado,
     required this.fechaCreacion,
     this.fechaEntrega,
@@ -52,6 +64,12 @@ class Orden {
       receptor: json['destinatario_nombre'] ?? 'Sin destinatario',
       descripcion: json['descripcion'] ?? '',
       direccionDestino: json['direccion_destino'] ?? '',
+      telefonoDestinatario: json['telefono_destinatario'],
+      ciudadDestino: json['ciudad_destino'],
+      peso: json['peso']?.toDouble(),
+      largo: json['largo']?.toDouble(),
+      ancho: json['ancho']?.toDouble(),
+      alto: json['alto']?.toDouble(),
       estado: json['estado'] ?? 'POR ENVIAR',
       fechaCreacion: json['fecha_creacion'] != null 
           ? DateTime.parse(json['fecha_creacion'])
@@ -83,6 +101,12 @@ class Orden {
       'receptor': receptor,
       'descripcion': descripcion,
       'direccionDestino': direccionDestino,
+      'telefonoDestinatario': telefonoDestinatario,
+      'ciudadDestino': ciudadDestino,
+      'peso': peso,
+      'largo': largo,
+      'ancho': ancho,
+      'alto': alto,
       'estado': estado,
       'fechaCreacion': fechaCreacion.toIso8601String(),
       'fechaEntrega': fechaEntrega?.toIso8601String(),

@@ -40,6 +40,9 @@ dependencies:
   
   # Image picker for profile photos
   image_picker: ^1.0.7
+  
+  # URL launcher for phone calls
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:

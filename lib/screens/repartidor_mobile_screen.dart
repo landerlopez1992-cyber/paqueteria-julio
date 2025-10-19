@@ -3,6 +3,7 @@ import '../main.dart';
 import '../models/orden.dart';
 import 'repartidor_perfil_screen.dart';
 import 'chat_soporte_screen.dart';
+import 'detalle_orden_screen.dart';
 import '../config/app_colors.dart';
 
 class RepartidorMobileScreen extends StatefulWidget {
@@ -144,12 +145,13 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
         return;
       }
 
-      // Cargar solo órdenes activas por defecto (más rápido)
+      // Cargar órdenes activas - buscar por múltiples variaciones del nombre
+      final primerNombre = repartidorNombre.split(' ')[0]; // "Omar" de "Omar Jones"
       final response = await supabase
           .from('ordenes')
           .select()
-          .eq('repartidor_nombre', repartidorNombre)
-          .inFilter('estado', ['POR ENVIAR', 'EN TRANSITO'])
+          .or('repartidor_nombre.eq.$repartidorNombre,repartidor_nombre.ilike.%$primerNombre%')
+          .inFilter('estado', ['POR ENVIAR', 'EN TRANSITO', 'ATRASADO'])
           .order('fecha_creacion', ascending: false)
           .limit(50); // Limitar a 50 órdenes para mejorar rendimiento
 
@@ -162,9 +164,10 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
         });
       }
 
-      // print('✅ Órdenes cargadas para repartidor: ${_ordenes.length}');
+      print('✅ Órdenes cargadas para repartidor "$repartidorNombre": ${_ordenes.length}');
+      print('📋 Filtro usado: repartidor_nombre = "$repartidorNombre"');
     } catch (e) {
-      // print('❌ Error al cargar órdenes: $e');
+      print('❌ Error al cargar órdenes: $e');
       setState(() {
         _isLoading = false;
       });
@@ -442,7 +445,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
                         onRefresh: _cargarOrdenes,
                         color: const Color(0xFF1976D2),
                         child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(12),
                           itemCount: _ordenesFiltradas.length,
                           itemBuilder: (context, index) {
                             final orden = _ordenesFiltradas[index];
@@ -521,26 +524,26 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
                       orden.estado != 'ENTREGADO';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: esUrgente ? const Color(0xFFFFEBEE) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
         border: esUrgente 
-            ? Border.all(color: const Color(0xFFDC2626), width: 2)
+            ? Border.all(color: const Color(0xFFDC2626), width: 1)
             : null,
       ),
       child: InkWell(
         onTap: () => _mostrarDetallesOrden(orden),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -551,38 +554,38 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1976D2),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           '#${orden.numeroOrden}',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       if (esUrgente) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                           decoration: BoxDecoration(
                             color: const Color(0xFFDC2626),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(3),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.warning, color: Colors.white, size: 12),
-                              SizedBox(width: 2),
+                              Icon(Icons.warning, color: Colors.white, size: 10),
+                              SizedBox(width: 1),
                               Text(
                                 'URGENTE',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10,
+                                  fontSize: 8,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -596,33 +599,33 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
                 ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               // Información del emisor y destinatario
               _buildInfoRow(Icons.person, 'De:', orden.emisor),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               _buildInfoRow(Icons.person_outline, 'Para:', orden.receptor),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               _buildInfoRow(Icons.location_on, 'Dirección:', orden.direccionDestino),
 
               if (orden.requierePago) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: const Color(0xFF4CAF50).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(4),
                     border: Border.all(color: const Color(0xFF4CAF50)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.attach_money, color: Color(0xFF4CAF50), size: 16),
-                      const SizedBox(width: 6),
+                      const Icon(Icons.attach_money, color: Color(0xFF4CAF50), size: 14),
+                      const SizedBox(width: 4),
                       Text(
                         'Cobrar: ${orden.moneda == 'USD' ? '\$' : '\$'} ${orden.montoCobrar.toStringAsFixed(2)} ${orden.moneda}',
                         style: const TextStyle(
                           color: Color(0xFF4CAF50),
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -631,18 +634,18 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
                 ),
               ],
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               // Fecha de entrega
               Row(
                 children: [
-                  const Icon(Icons.schedule, color: Color(0xFF666666), size: 16),
-                  const SizedBox(width: 6),
+                  const Icon(Icons.schedule, color: Color(0xFF666666), size: 14),
+                  const SizedBox(width: 4),
                   Text(
                     'Entrega: ${_formatearFecha(orden.fechaEntrega)}',
                     style: TextStyle(
                       color: esAtrasada ? const Color(0xFFDC2626) : const Color(0xFF666666),
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: esAtrasada ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
@@ -651,34 +654,34 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
 
               // Botones de acción
               if (orden.estado != 'ENTREGADO' && orden.estado != 'CANCELADA') ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () => _marcarComoEntregado(orden),
-                        icon: const Icon(Icons.check_circle, size: 18),
+                        icon: const Icon(Icons.check_circle, size: 16),
                         label: const Text('Entregar'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CAF50),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _marcarComoEnTransito(orden),
-                        icon: const Icon(Icons.local_shipping, size: 18),
+                        icon: const Icon(Icons.local_shipping, size: 16),
                         label: const Text('En Tránsito'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF1976D2),
                           side: const BorderSide(color: Color(0xFF1976D2)),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -699,14 +702,14 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: const Color(0xFF666666), size: 16),
-        const SizedBox(width: 6),
+        Icon(icon, color: const Color(0xFF666666), size: 14),
+        const SizedBox(width: 4),
         Expanded(
           child: RichText(
             text: TextSpan(
               style: const TextStyle(
                 color: Color(0xFF666666),
-                fontSize: 12,
+                fontSize: 11,
               ),
               children: [
                 TextSpan(
@@ -790,146 +793,19 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
     return '${fecha.day}/${fecha.month}/${fecha.year} ${fecha.hour}:${fecha.minute.toString().padLeft(2, '0')}';
   }
 
-  void _mostrarDetallesOrden(Orden orden) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildDetallesModal(orden),
+  void _mostrarDetallesOrden(Orden orden) async {
+    final resultado = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => DetalleOrdenScreen(orden: orden),
+      ),
     );
+    
+    // Si se actualizó la orden, recargar la lista
+    if (resultado == true) {
+      _cargarOrdenes();
+    }
   }
 
-  Widget _buildDetallesModal(Orden orden) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          
-          // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1976D2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '#${orden.numeroOrden}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-          ),
-          
-          // Contenido
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildDetalleItem('Emisor', orden.emisor),
-                  _buildDetalleItem('Destinatario', orden.receptor),
-                  _buildDetalleItem('Dirección', orden.direccionDestino),
-                  _buildDetalleItem('Estado', orden.estado),
-                  _buildDetalleItem('Fecha de entrega', _formatearFecha(orden.fechaEntrega)),
-                  
-                  if (orden.requierePago) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF4CAF50)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Información de Pago',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF4CAF50),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text('Monto: ${orden.moneda == 'USD' ? '\$' : '\$'} ${orden.montoCobrar.toStringAsFixed(2)} ${orden.moneda}'),
-                          Text('Estado: ${orden.pagado ? 'Pagado' : 'Pendiente'}'),
-                          if (orden.notasPago != null && orden.notasPago!.isNotEmpty)
-                            Text('Notas: ${orden.notasPago}'),
-                        ],
-                      ),
-                    ),
-                  ],
-                  
-                  if (orden.notas != null && orden.notas!.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    _buildDetalleItem('Notas', orden.notas!),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetalleItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF666666),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF2C2C2C),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _marcarComoEntregado(Orden orden) async {
     try {
