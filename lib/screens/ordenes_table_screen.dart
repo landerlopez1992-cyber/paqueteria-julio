@@ -195,8 +195,9 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
     // Filtrar por estado
     switch (_filtroEstado) {
       case 'ACTIVAS':
+        // Órdenes activas: POR ENVIAR, EN TRANSITO, y ATRASADAS (todas las no entregadas)
         filtradas = filtradas.where((orden) => 
-          (orden.estado == 'POR ENVIAR' || orden.estado == 'EN TRANSITO') && !_estaAtrasada(orden)).toList();
+          orden.estado != 'ENTREGADO' && orden.estado != 'CANCELADA').toList();
         break;
       case 'ENTREGADAS':
         filtradas = filtradas.where((orden) => orden.estado == 'ENTREGADO').toList();

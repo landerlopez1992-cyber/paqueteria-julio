@@ -180,15 +180,15 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
         return;
       }
 
-      // Cargar órdenes activas - buscar por múltiples variaciones del nombre
+      // Cargar TODAS las órdenes del repartidor (activas y entregadas) - buscar por múltiples variaciones del nombre
       final primerNombre = repartidorNombre.split(' ')[0]; // "Omar" de "Omar Jones"
       final response = await supabase
           .from('ordenes')
           .select()
           .or('repartidor_nombre.eq.$repartidorNombre,repartidor_nombre.ilike.%$primerNombre%')
-          .inFilter('estado', ['POR ENVIAR', 'EN TRANSITO', 'ATRASADO'])
+          // Cargar TODAS las órdenes del repartidor (activas y entregadas)
           .order('fecha_creacion', ascending: false)
-          .limit(50); // Limitar a 50 órdenes para mejorar rendimiento
+          .limit(100); // Aumentar límite para incluir entregadas
 
       if (mounted) {
         setState(() {
