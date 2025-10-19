@@ -397,6 +397,14 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
   }
 
   Future<void> _cambiarEstadoOrdenes() async {
+    // Advertencia especial si se marca como ENTREGADO desde el panel web
+    if (_nuevoEstado == 'ENTREGADO') {
+      final confirmado = await _mostrarConfirmacionEntregado();
+      if (!confirmado) {
+        return;
+      }
+    }
+
     try {
       int ordenesActualizadas = 0;
 
@@ -1393,5 +1401,75 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  Future<bool> _mostrarConfirmacionEntregado() async {
+    final resultado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFFFFFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Color(0xFFFF9800), size: 24),
+            SizedBox(width: 12),
+            Text(
+              'Advertencia',
+              style: TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          '⚠️ Estás marcando órdenes como ENTREGADAS desde el panel de administración.\n\nEsto omite las validaciones de:\n• Foto de entrega obligatoria\n• Cobro de dinero al cliente\n\n¿Estás seguro de que quieres continuar?',
+          style: TextStyle(
+            color: Color(0xFF666666),
+            fontSize: 14,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF666666),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF9800),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              'Continuar',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    return resultado ?? false;
   }
 }
