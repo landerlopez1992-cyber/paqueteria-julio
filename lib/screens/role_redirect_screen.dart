@@ -113,80 +113,84 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.fondoGeneral,
-      body: SafeArea(
+      backgroundColor: const Color(0xFF00BCD4),
+      body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                
-                // Logo (igual que en login_supabase_screen.dart)
-                Image.asset(
-                  'assets/logo julio.png',
-                  width: 150,
-                  height: 150,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 20),
-
-                // Título en dos líneas
-                const Column(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
+            margin: const EdgeInsets.all(20),
+            child: Card(
+              color: const Color(0xFFFFFFFF),
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
+                    // Logo (EXACTO como en login)
+                    Image.asset(
+                      'assets/logo julio.png',
+                      width: 150,
+                      height: 150,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Título en dos líneas
+                    const Text(
                       'Paquetería',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textoPrincipal,
+                        color: Color(0xFF2C2C2C),
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 6),
-                    Text(
+                    const SizedBox(height: 4),
+                    const Text(
                       'J Alvarez Express SVC',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textoSecundario,
+                        color: Color(0xFF666666),
                       ),
                       textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 32),
+
+                    if (_isLoading) ...[
+                      // Loading
+                      const CircularProgressIndicator(
+                        color: AppColors.primary,
+                        strokeWidth: 3,
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Verificando acceso...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.textoSecundario,
+                        ),
+                      ),
+                    ] else ...[
+                      // Contenido según el rol y plataforma
+                      if (widget.userRole == 'REPARTIDOR' && kIsWeb) ...[
+                        // Repartidor en Web - Mostrar mensaje de descarga
+                        _buildRepartidorWebMessage(),
+                      ] else if (widget.userRole == 'ADMINISTRADOR' && !kIsWeb) ...[
+                        // Administrador en Móvil - Mostrar mensaje de web
+                        _buildAdminMobileMessage(),
+                      ] else ...[
+                        // Acceso correcto - Continuar
+                        _buildCorrectAccess(),
+                      ],
+                    ],
                   ],
                 ),
-                const SizedBox(height: 40),
-
-                if (_isLoading) ...[
-                  // Loading
-                  const CircularProgressIndicator(
-                    color: AppColors.primary,
-                    strokeWidth: 3,
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Verificando acceso...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.textoSecundario,
-                    ),
-                  ),
-                ] else ...[
-                  // Contenido según el rol y plataforma
-                  if (widget.userRole == 'REPARTIDOR' && kIsWeb) ...[
-                    // Repartidor en Web - Mostrar mensaje de descarga
-                    _buildRepartidorWebMessage(),
-                  ] else if (widget.userRole == 'ADMINISTRADOR' && !kIsWeb) ...[
-                    // Administrador en Móvil - Mostrar mensaje de web
-                    _buildAdminMobileMessage(),
-                  ] else ...[
-                    // Acceso correcto - Continuar
-                    _buildCorrectAccess(),
-                  ],
-                ],
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
           ),
         ),
