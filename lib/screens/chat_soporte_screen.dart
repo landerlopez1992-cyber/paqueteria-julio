@@ -190,29 +190,66 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
   }
 
   Future<void> _enviarMensaje() async {
+    print('🔵 _enviarMensaje llamado');
+    
     final user = supabase.auth.currentUser;
     if (user == null || _mensajeController.text.trim().isEmpty) {
+      print('⚠️ Usuario null o mensaje vacío');
       return;
     }
 
     final mensaje = _mensajeController.text.trim();
+    print('📝 Mensaje a enviar: $mensaje');
+    print('🔑 ConversacionId: $_conversacionId');
     
-    // Si no hay conversación (tablas no existen), mostrar mensaje de error
+    // Si no hay conversación, intentar crearla
     if (_conversacionId == null) {
+      print('❌ No hay conversación, intentando crear...');
       _mensajeController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ Chat no disponible. Ejecuta el SQL en Supabase para activar el chat.'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 4),
-        ),
-      );
+      
+      try {
+        // Intentar crear conversación
+        final nuevaConversacion = await supabase
+            .from('conversaciones_soporte')
+            .insert({
+          'repartidor_id': user.id,
+          'estado': 'ABIERTA',
+        }).select('id').single();
+
+        _conversacionId = nuevaConversacion['id'];
+        print('✅ Conversación creada: $_conversacionId');
+        
+        // Reintentar enviar el mensaje
+        await supabase.from('mensajes_soporte').insert({
+          'conversacion_id': _conversacionId,
+          'remitente_id': user.id,
+          'mensaje': mensaje,
+          'leido': false,
+        });
+        
+        print('✅ Mensaje enviado exitosamente');
+        _scrollToBottom();
+        
+        // Suscribirse a mensajes ahora que tenemos conversación
+        _suscribirseAMensajes();
+        
+      } catch (e) {
+        print('❌ Error al crear conversación o enviar: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚠️ Error: ${e.toString()}'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
       return;
     }
 
     _mensajeController.clear();
 
     try {
+      print('📤 Enviando mensaje...');
       await supabase.from('mensajes_soporte').insert({
         'conversacion_id': _conversacionId,
         'remitente_id': user.id,
@@ -220,14 +257,15 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
         'leido': false,
       });
 
+      print('✅ Mensaje enviado exitosamente');
       _scrollToBottom();
     } catch (e) {
-      print('Error al enviar mensaje: $e');
+      print('❌ Error al enviar mensaje: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ Error al enviar mensaje. Verifica que las tablas de chat existan en Supabase.'),
+        SnackBar(
+          content: Text('⚠️ Error: ${e.toString()}'),
           backgroundColor: Colors.orange,
-          duration: Duration(seconds: 4),
+          duration: const Duration(seconds: 5),
         ),
       );
     }
