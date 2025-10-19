@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../models/orden.dart';
 import '../main.dart';
 
@@ -501,11 +500,11 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _puedeMarcarComoEntregado() ? () => _marcarComoEntregado() : null,
+                    onPressed: _isLoading ? null : () => _marcarComoEntregado(),
                     icon: const Icon(Icons.check_circle, size: 18),
                     label: const Text('Marcar como Entregado'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _puedeMarcarComoEntregado() ? const Color(0xFF4CAF50) : Colors.grey,
+                      backgroundColor: const Color(0xFF4CAF50),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -754,18 +753,11 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
     );
   }
 
-  bool _puedeMarcarComoEntregado() {
-    // Si la foto no es obligatoria, siempre puede marcar como entregado
-    if (!_fotoEntregaObligatoria) return true;
-    
-    // Si la foto es obligatoria, debe tener foto
-    return widget.orden.fotoEntrega != null && widget.orden.fotoEntrega!.isNotEmpty;
-  }
 
   void _marcarComoEntregado() async {
     // Si la foto es obligatoria, verificar si ya tiene foto
     if (_fotoEntregaObligatoria && (widget.orden.fotoEntrega == null || widget.orden.fotoEntrega!.isEmpty)) {
-      _mostrarDialogoFotoObligatoria();
+      _mostrarErrorFotoObligatoria();
       return;
     }
 
@@ -864,25 +856,50 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
     );
   }
 
-  void _mostrarDialogoFotoObligatoria() {
+  void _mostrarErrorFotoObligatoria() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFFFFFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         title: const Row(
           children: [
-            Icon(Icons.camera_alt, color: Color(0xFF1976D2)),
+            Icon(Icons.camera_alt, color: Color(0xFFDC2626), size: 24),
             SizedBox(width: 12),
-            Text('Foto Obligatoria'),
+            Text(
+              'Foto Obligatoria',
+              style: TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         content: const Text(
-          'Para marcar esta orden como entregada, debes tomar una foto como prueba de entrega.',
-          style: TextStyle(fontSize: 14),
+          '❌ Error: Debes tomar una foto de la entrega primero para poder realizar la entrega exitosamente.',
+          style: TextStyle(
+            color: Color(0xFF666666),
+            fontSize: 14,
+            height: 1.4,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF666666),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -891,8 +908,20 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1976D2),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 2,
             ),
-            child: const Text('Tomar Foto'),
+            child: const Text(
+              'Tomar Foto',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -910,24 +939,49 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
       );
 
       if (image != null) {
-        // Aquí subirías la imagen a Supabase Storage
-        // Por ahora, solo actualizamos el campo en la base de datos
-        await supabase
-            .from('ordenes')
-            .update({
-              'foto_entrega': image.path, // En producción, esto sería la URL de la imagen
-            })
-            .eq('id', widget.orden.id);
-
-        _mostrarMensaje('Foto tomada exitosamente. Ahora puedes marcar como entregada.');
-        
-        // Actualizar el estado local
         setState(() {
-          // Actualizar la orden local con la nueva foto
+          _isLoading = true;
         });
+
+        try {
+          // Subir imagen a Supabase Storage
+          final fileName = 'entrega_${widget.orden.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final fileBytes = await image.readAsBytes();
+          
+          await supabase.storage
+              .from('fotos-entrega')
+              .uploadBinary(fileName, fileBytes);
+
+          // Obtener URL pública de la imagen
+          final imageUrl = supabase.storage
+              .from('fotos-entrega')
+              .getPublicUrl(fileName);
+
+          // Actualizar la orden con la URL de la imagen
+          await supabase
+              .from('ordenes')
+              .update({
+                'foto_entrega': imageUrl,
+              })
+              .eq('id', widget.orden.id);
+
+          _mostrarMensaje('✅ Foto subida exitosamente a Supabase. Ahora puedes marcar como entregada.');
+          
+          // Actualizar el estado local para mostrar la previsualización
+          setState(() {
+            // La orden se actualizará cuando se recargue desde la base de datos
+          });
+
+        } catch (uploadError) {
+          _mostrarMensaje('❌ Error al subir la foto a Supabase: $uploadError');
+        } finally {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
-      _mostrarMensaje('Error al tomar la foto: $e');
+      _mostrarMensaje('❌ Error al tomar la foto: $e');
     }
   }
 }
