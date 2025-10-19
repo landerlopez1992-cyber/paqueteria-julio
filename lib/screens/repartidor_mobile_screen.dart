@@ -673,43 +673,12 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
                 ],
               ),
 
-              // Botones de acción
+              // Botón de acción único según el estado
               if (orden.estado != 'ENTREGADO' && orden.estado != 'CANCELADA') ...[
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _marcarComoEntregado(orden),
-                        icon: const Icon(Icons.check_circle, size: 16),
-                        label: const Text('Entregar'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4CAF50),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _marcarComoEnTransito(orden),
-                        icon: const Icon(Icons.local_shipping, size: 16),
-                        label: const Text('En Tránsito'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF1976D2),
-                          side: const BorderSide(color: Color(0xFF1976D2)),
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                SizedBox(
+                  width: double.infinity,
+                  child: _buildBotonAccion(orden),
                 ),
               ],
             ],
@@ -827,6 +796,70 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
     }
   }
 
+  Widget _buildBotonAccion(Orden orden) {
+    switch (orden.estado) {
+      case 'POR ENVIAR':
+        return ElevatedButton.icon(
+          onPressed: () => _marcarComoEnTransito(orden),
+          icon: const Icon(Icons.local_shipping, size: 18),
+          label: const Text('Marcar En Tránsito'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1976D2),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      
+      case 'EN TRANSITO':
+        return ElevatedButton.icon(
+          onPressed: () => _marcarComoEntregado(orden),
+          icon: const Icon(Icons.check_circle, size: 18),
+          label: const Text('Marcar Entregado'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF4CAF50),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      
+      case 'ATRASADO':
+        // Si está atrasado pero aún no se ha marcado como en tránsito
+        return ElevatedButton.icon(
+          onPressed: () => _marcarComoEnTransito(orden),
+          icon: const Icon(Icons.local_shipping, size: 18),
+          label: const Text('Marcar En Tránsito'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFF9800),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      
+      default:
+        return ElevatedButton.icon(
+          onPressed: () => _marcarComoEnTransito(orden),
+          icon: const Icon(Icons.local_shipping, size: 18),
+          label: const Text('Marcar En Tránsito'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1976D2),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+    }
+  }
 
   Future<void> _marcarComoEntregado(Orden orden) async {
     // Si la foto es obligatoria, verificar si ya tiene foto
