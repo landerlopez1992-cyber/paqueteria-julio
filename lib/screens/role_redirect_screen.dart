@@ -73,30 +73,67 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
   }
 
   void _redirectToCorrectPlatform() {
-    if (widget.userRole == 'REPARTIDOR') {
-      // Repartidor - ir a pantalla móvil
+    if (widget.userRole == 'REPARTIDOR' && !kIsWeb) {
+      // Repartidor en MÓVIL - ir a pantalla móvil
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => const RepartidorMobileScreen(),
         ),
       );
+    } else if (widget.userRole == 'ADMINISTRADOR' && kIsWeb) {
+      // Administrador en WEB - ir a dashboard web
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => DashboardScreen(userRole: widget.userRole),
+        ),
+      );
     } else {
-        // Administrador - ir a dashboard web
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => DashboardScreen(userRole: widget.userRole),
-          ),
-        );
+      // Casos de conflicto - NO redirigir, ya se muestra el mensaje
+      print('⚠️ No se redirige - conflicto de plataforma detectado');
     }
   }
 
   void _logout() async {
-    await supabase.auth.signOut();
-    if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginSupabaseScreen()),
-        (route) => false,
-      );
+    try {
+      print('🚪 Iniciando proceso de logout...');
+      
+      // Mostrar loading mientras se procesa el logout
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
+      
+      // Intentar cerrar sesión en Supabase
+      await supabase.auth.signOut();
+      print('✅ Logout exitoso en Supabase');
+      
+      // Pequeña pausa para asegurar que el logout se complete
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (mounted) {
+        // Navegar al login limpiando toda la pila de navegación
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginSupabaseScreen()),
+          (route) => false,
+        );
+        print('✅ Navegación al login completada');
+      }
+    } catch (e) {
+      print('❌ Error durante logout: $e');
+      
+      // Aunque haya error, intentar navegar al login de todas formas
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginSupabaseScreen()),
+          (route) => false,
+        );
+        print('⚠️ Navegación al login forzada después de error');
+      }
     }
   }
 
