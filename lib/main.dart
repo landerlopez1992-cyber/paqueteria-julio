@@ -169,12 +169,66 @@ class _AuthWrapperState extends State<AuthWrapper> {
           }
         }
       } catch (e2) {
-        if (mounted) {
-          setState(() {
-            _isAuthenticated = false;
-            _isLoading = false;
-          });
-        }
+        // Si el usuario no existe en la tabla usuarios, crearlo automáticamente
+        await _createUserIfNotExists(user);
+      }
+    }
+  }
+
+  Future<void> _createUserIfNotExists(User? user) async {
+    if (user?.email == null) {
+      if (mounted) {
+        setState(() {
+          _isAuthenticated = false;
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+
+    try {
+      // Determinar rol basado en el email
+      String role = 'REPARTIDOR';
+      if (user!.email!.contains('admin') || 
+          user.email!.contains('administrador') ||
+          user.email == 'admin@paqueteria.com') {
+        role = 'ADMINISTRADOR';
+      }
+
+      // Crear usuario en la tabla usuarios
+      final newUser = await supabase
+          .from('usuarios')
+          .insert({
+            'id': user.id,
+            'email': user.email,
+            'nombre': user.email!.split('@')[0].replaceAll('.', ' ').toUpperCase(),
+            'telefono': '+53 000000000',
+            'rol': role,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .select('rol, nombre, email')
+          .single();
+
+      if (mounted) {
+        setState(() {
+          _isAuthenticated = true;
+          _userRole = newUser['rol']?.toString().toUpperCase() ?? 'REPARTIDOR';
+          _userName = newUser['nombre'] ?? 'Usuario';
+          _userEmail = newUser['email'];
+          _isLoading = false;
+        });
+      }
+    } catch (e3) {
+      // Si todo falla, usar valores por defecto
+      if (mounted) {
+        setState(() {
+          _isAuthenticated = true;
+          _userRole = user!.email!.contains('admin') ? 'ADMINISTRADOR' : 'REPARTIDOR';
+          _userName = user.email!.split('@')[0].replaceAll('.', ' ').toUpperCase();
+          _userEmail = user.email;
+          _isLoading = false;
+        });
       }
     }
   }

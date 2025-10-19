@@ -253,27 +253,33 @@ class _SharedLayoutState extends State<SharedLayout> {
                       ),
                       const SizedBox(width: 12),
                       // Nombre del usuario
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _userName ?? 'Cargando...',
-                            style: const TextStyle(
-                              color: Color(0xFF2C2C2C),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (_userEmail != null)
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
                             Text(
-                              _userEmail!,
+                              _userName ?? 'Cargando...',
                               style: const TextStyle(
-                                color: Color(0xFF666666),
-                                fontSize: 12,
+                                color: Color(0xFF2C2C2C),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
-                        ],
+                            if (_userEmail != null)
+                              Text(
+                                _userEmail!,
+                                style: const TextStyle(
+                                  color: Color(0xFF666666),
+                                  fontSize: 12,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
