@@ -1181,8 +1181,8 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
                   controller: _pesoController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
-                    labelText: 'Peso (kg)',
-                    hintText: 'Ej: 2.5',
+                    labelText: 'Peso (lb)',
+                    hintText: 'Ej: 50',
                     prefixIcon: const Icon(Icons.scale, color: Color(0xFF1976D2)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),

@@ -284,7 +284,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             const SizedBox(height: 8),
             _buildInfoRow(Icons.inventory_2, 'Bultos', '${widget.orden.cantidadBultos} ${widget.orden.cantidadBultos == 1 ? 'bulto' : 'bultos'}'),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.scale, 'Peso', '${widget.orden.peso ?? 0} kg'),
+            _buildInfoRow(Icons.scale, 'Peso', '${widget.orden.peso ?? 0} lb'),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.straighten, 'Dimensiones', '${widget.orden.largo ?? 0} x ${widget.orden.ancho ?? 0} x ${widget.orden.alto ?? 0} cm'),
           ],
