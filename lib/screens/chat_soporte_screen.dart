@@ -191,13 +191,25 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
 
   Future<void> _enviarMensaje() async {
     final user = supabase.auth.currentUser;
-    if (user == null || 
-        _conversacionId == null || 
-        _mensajeController.text.trim().isEmpty) {
+    if (user == null || _mensajeController.text.trim().isEmpty) {
       return;
     }
 
     final mensaje = _mensajeController.text.trim();
+    
+    // Si no hay conversación (tablas no existen), mostrar mensaje de error
+    if (_conversacionId == null) {
+      _mensajeController.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Chat no disponible. Ejecuta el SQL en Supabase para activar el chat.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     _mensajeController.clear();
 
     try {
@@ -213,8 +225,9 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
       print('Error al enviar mensaje: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Error al enviar mensaje'),
-          backgroundColor: AppColors.error,
+          content: Text('⚠️ Error al enviar mensaje. Verifica que las tablas de chat existan en Supabase.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 4),
         ),
       );
     }

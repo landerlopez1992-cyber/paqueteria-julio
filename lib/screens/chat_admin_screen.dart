@@ -638,9 +638,10 @@ class _ChatAdminConversacionScreenState
     } catch (e) {
       print('Error al enviar mensaje: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al enviar mensaje'),
-          backgroundColor: AppColors.error,
+        const SnackBar(
+          content: Text('⚠️ Error al enviar mensaje. Verifica que las tablas de chat existan en Supabase.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 4),
         ),
       );
     }
