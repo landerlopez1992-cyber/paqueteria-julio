@@ -20,6 +20,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
   bool _isLoading = true;
   String? _repartidorNombre;
   String? _fotoPerfilUrl;
+  bool _fotoEntregaObligatoria = true; // Por defecto activado
 
   @override
   void initState() {
@@ -28,8 +29,28 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
     // Cargar datos de forma asíncrona sin bloquear el hilo principal
     Future.microtask(() async {
       await _obtenerNombreRepartidor();
+      await _cargarConfiguracionFoto();
       await _cargarOrdenes();
     });
+  }
+
+  Future<void> _cargarConfiguracionFoto() async {
+    try {
+      final response = await supabase
+          .from('configuracion_envios')
+          .select('foto_entrega_obligatoria')
+          .limit(1)
+          .single();
+      
+      if (mounted) {
+        setState(() {
+          _fotoEntregaObligatoria = response['foto_entrega_obligatoria'] ?? true;
+        });
+      }
+    } catch (e) {
+      print('Error al cargar configuración de foto: $e');
+      // Mantener el valor por defecto
+    }
   }
 
   @override
@@ -808,19 +829,38 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
 
 
   Future<void> _marcarComoEntregado(Orden orden) async {
-    try {
-      await supabase
-          .from('ordenes')
-          .update({
-            'estado': 'ENTREGADO',
-            'fecha_entrega': DateTime.now().toIso8601String(),
-          })
-          .eq('id', orden.id);
+    // Si la foto es obligatoria, verificar si ya tiene foto
+    if (_fotoEntregaObligatoria && (orden.fotoEntrega == null || orden.fotoEntrega!.isEmpty)) {
+      _mostrarErrorFotoObligatoria(orden);
+      return;
+    }
 
-      _mostrarMensaje('Orden marcada como entregada');
-      _cargarOrdenes();
-    } catch (e) {
-      _mostrarMensaje('Error al marcar como entregada: $e');
+    // Si la orden requiere pago, verificar que se haya cobrado
+    if (orden.requierePago && !orden.pagado) {
+      _mostrarDialogoCobroObligatorio(orden);
+      return;
+    }
+
+    final confirmado = await _mostrarConfirmacion(
+      'Confirmar Entrega',
+      '¿Estás seguro de que quieres marcar esta orden como entregada?',
+    );
+    
+    if (confirmado) {
+      try {
+        await supabase
+            .from('ordenes')
+            .update({
+              'estado': 'ENTREGADO',
+              'fecha_entrega': DateTime.now().toIso8601String(),
+            })
+            .eq('id', orden.id);
+
+        _mostrarMensaje('Orden marcada como entregada');
+        _cargarOrdenes();
+      } catch (e) {
+        _mostrarMensaje('Error al marcar como entregada: $e');
+      }
     }
   }
 
@@ -846,5 +886,253 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  Future<bool> _mostrarConfirmacion(String titulo, String mensaje) async {
+    final resultado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFFFFFF),
+        title: Text(
+          titulo,
+          style: const TextStyle(
+            color: Color(0xFF2C2C2C),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          mensaje,
+          style: const TextStyle(
+            color: Color(0xFF666666),
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: Color(0xFF666666)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+            ),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+    return resultado ?? false;
+  }
+
+  void _mostrarErrorFotoObligatoria(Orden orden) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFFFFFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.camera_alt, color: Color(0xFFDC2626), size: 24),
+            SizedBox(width: 12),
+            Text(
+              'Foto Obligatoria',
+              style: TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          '❌ Error: Debes tomar una foto de la entrega primero para poder realizar la entrega exitosamente.',
+          style: TextStyle(
+            color: Color(0xFF666666),
+            fontSize: 14,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF666666),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _mostrarDetallesOrden(orden);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1976D2),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              'Tomar Foto',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarDialogoCobroObligatorio(Orden orden) {
+    final monto = orden.montoCobrar;
+    final moneda = orden.moneda;
+    final simbolo = moneda == 'USD' ? '\$' : '\$';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFFFFFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.attach_money, color: Color(0xFF4CAF50), size: 24),
+            SizedBox(width: 12),
+            Text(
+              'Cobro Obligatorio',
+              style: TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '💰 El cliente debe pagar:',
+              style: const TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF4CAF50)),
+              ),
+              child: Text(
+                '$simbolo ${monto.toStringAsFixed(2)} $moneda',
+                style: const TextStyle(
+                  color: Color(0xFF4CAF50),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '❌ Error: Debes cobrar al cliente antes de entregar la orden.',
+              style: TextStyle(
+                color: Color(0xFF666666),
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF666666),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _marcarDineroCobrado(orden);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              'Dinero Cobrado',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _marcarDineroCobrado(Orden orden) async {
+    final confirmado = await _mostrarConfirmacion(
+      'Confirmar Cobro',
+      '¿Confirmas que el cliente ya pagó ${orden.moneda == 'USD' ? '\$' : '\$'} ${orden.montoCobrar.toStringAsFixed(2)} ${orden.moneda}?',
+    );
+    
+    if (confirmado) {
+      try {
+        await supabase
+            .from('ordenes')
+            .update({
+              'pagado': true,
+              'fecha_pago': DateTime.now().toIso8601String(),
+            })
+            .eq('id', orden.id);
+        
+        _mostrarMensaje('✅ Dinero cobrado registrado. Ahora puedes entregar la orden.');
+        _cargarOrdenes();
+        
+      } catch (e) {
+        _mostrarMensaje('Error al registrar el cobro: $e');
+      }
+    }
   }
 }
