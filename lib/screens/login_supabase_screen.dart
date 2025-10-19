@@ -85,7 +85,6 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
 
             String userRole = userData['rol']?.toString().toUpperCase() ?? '';
             String userName = userData['nombre'] ?? 'Usuario';
-            String? userEmail = userData['email'];
             
             // Navegar a RoleRedirectScreen para validar plataforma
             if (mounted) {
