@@ -124,12 +124,15 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _loadUserRole(String userId) async {
     try {
+      print('🔍 Buscando usuario por ID: $userId');
       // Obtener el rol y nombre del usuario desde la base de datos
       final userData = await supabase
           .from('usuarios')
           .select('rol, nombre, email')
           .eq('id', userId)
           .single();
+      
+      print('✅ Usuario encontrado por ID: ${userData['nombre']}');
       
       if (mounted) {
         setState(() {
@@ -141,15 +144,20 @@ class _AuthWrapperState extends State<AuthWrapper> {
         });
       }
     } catch (e) {
+      print('❌ Error buscando por ID: $e');
       // Si no encuentra por ID, intentar por email
       try {
         final user = supabase.auth.currentUser;
+        print('🔍 Intentando buscar por email: ${user?.email}');
+        
         if (user?.email != null) {
           final userData = await supabase
               .from('usuarios')
               .select('rol, nombre, email')
               .eq('email', user!.email!)
               .single();
+          
+          print('✅ Usuario encontrado por email: ${userData['nombre']}');
           
           if (mounted) {
             setState(() {
@@ -161,6 +169,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
             });
           }
         } else {
+          print('❌ No hay email disponible');
           if (mounted) {
             setState(() {
               _isAuthenticated = false;
@@ -169,6 +178,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
           }
         }
       } catch (e2) {
+        print('❌ Error buscando por email: $e2');
+        print('🔧 Intentando crear usuario automáticamente...');
         // Si el usuario no existe en la tabla usuarios, crearlo automáticamente
         await _createUserIfNotExists(supabase.auth.currentUser);
       }
@@ -177,6 +188,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _createUserIfNotExists(User? user) async {
     if (user?.email == null) {
+      print('❌ No se puede crear usuario sin email');
       if (mounted) {
         setState(() {
           _isAuthenticated = false;
@@ -195,11 +207,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
         role = 'ADMINISTRADOR';
       }
 
+      print('👤 Creando usuario ${user.email} con rol $role');
+
       // Crear usuario en la tabla usuarios
       final newUser = await supabase
           .from('usuarios')
           .insert({
-            'id': user.id,
+            'auth_id': user.id,
             'email': user.email,
             'nombre': user.email!.split('@')[0].replaceAll('.', ' ').toUpperCase(),
             'telefono': '+53 000000000',
@@ -207,8 +221,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
             'created_at': DateTime.now().toIso8601String(),
             'updated_at': DateTime.now().toIso8601String(),
           })
-          .select('rol, nombre, email')
+          .select('id, rol, nombre, email')
           .single();
+
+      print('✅ Usuario creado exitosamente: ${newUser['nombre']}');
 
       if (mounted) {
         setState(() {
@@ -220,8 +236,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
         });
       }
     } catch (e3) {
-      print('Error creando usuario: $e3');
-      // Si todo falla, usar valores por defecto
+      print('❌ Error creando usuario en BD: $e3');
+      // Si todo falla, usar valores por defecto (permitir continuar)
+      print('⚠️ Usando valores por defecto para continuar');
       if (mounted) {
         setState(() {
           _isAuthenticated = true;
