@@ -100,89 +100,116 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
     }
   }
 
+  void _backToLogin() {
+    // Volver al login sin cerrar sesión (permite reintentar con otras credenciales)
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginSupabaseScreen()),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.fondoGeneral,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo/Icono
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 40),
+                
+                // Logo sin fondo blanco
+                Image.asset(
+                  'assets/logo julio.png',
+                  width: 150,
+                  height: 150,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.local_shipping,
+                        size: 70,
+                        color: Colors.white,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Título
+                const Column(
+                  children: [
+                    Text(
+                      'Paquetería',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textoPrincipal,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'J Alvarez Express SVC',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textoSecundario,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.local_shipping,
-                  size: 60,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 32),
+                const SizedBox(height: 40),
 
-              // Título
-              Text(
-                'Paquetería J Alvarez',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textoPrincipal,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Express SVC',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textoSecundario,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
-
-              if (_isLoading) ...[
-                // Loading
-                const CircularProgressIndicator(
-                  color: AppColors.primary,
-                  strokeWidth: 3,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Verificando acceso...',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textoSecundario,
+                if (_isLoading) ...[
+                  // Loading
+                  const CircularProgressIndicator(
+                    color: AppColors.primary,
+                    strokeWidth: 3,
                   ),
-                ),
-              ] else ...[
-                // Contenido según el rol y plataforma
-                if (widget.userRole == 'REPARTIDOR' && kIsWeb) ...[
-                  // Repartidor en Web - Mostrar mensaje de descarga
-                  _buildRepartidorWebMessage(),
-                ] else if (widget.userRole == 'ADMINISTRADOR' && !kIsWeb) ...[
-                  // Administrador en Móvil - Mostrar mensaje de web
-                  _buildAdminMobileMessage(),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Verificando acceso...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textoSecundario,
+                    ),
+                  ),
                 ] else ...[
-                  // Acceso correcto - Continuar
-                  _buildCorrectAccess(),
+                  // Contenido según el rol y plataforma
+                  if (widget.userRole == 'REPARTIDOR' && kIsWeb) ...[
+                    // Repartidor en Web - Mostrar mensaje de descarga
+                    _buildRepartidorWebMessage(),
+                  ] else if (widget.userRole == 'ADMINISTRADOR' && !kIsWeb) ...[
+                    // Administrador en Móvil - Mostrar mensaje de web
+                    _buildAdminMobileMessage(),
+                  ] else ...[
+                    // Acceso correcto - Continuar
+                    _buildCorrectAccess(),
+                  ],
                 ],
+                const SizedBox(height: 40),
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -212,7 +239,7 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
         const Text(
           'Acceso desde Móvil Requerido',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppColors.textoPrincipal,
           ),
@@ -234,7 +261,7 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
         const Text(
           'Como repartidor, necesitas usar la aplicación móvil para acceder a tus órdenes y funciones.',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             color: AppColors.textoSecundario,
             height: 1.5,
           ),
@@ -243,45 +270,38 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
         const SizedBox(height: 32),
 
         // Botones de acción
-        Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // Aquí podrías agregar lógica para abrir la tienda de apps
-                  _showDownloadInstructions();
-                },
-                icon: const Icon(Icons.download, color: Colors.white),
-                label: const Text(
-                  'Descargar App Móvil',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _backToLogin,
+            icon: const Icon(Icons.login, color: Colors.white),
+            label: const Text(
+              'Volver al Login',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: _logout,
-              child: const Text(
-                'Cerrar Sesión',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textoSecundario,
-                ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-          ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: _logout,
+          child: const Text(
+            'Cerrar Sesión',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textoSecundario,
+            ),
+          ),
         ),
       ],
     );
@@ -310,7 +330,7 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
         const Text(
           'Acceso desde Web Requerido',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppColors.textoPrincipal,
           ),
@@ -332,7 +352,7 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
         const Text(
           'Como administrador, necesitas acceder desde una computadora o tablet para gestionar el sistema completo.',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             color: AppColors.textoSecundario,
             height: 1.5,
           ),
@@ -341,44 +361,38 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
         const SizedBox(height: 32),
 
         // Botones de acción
-        Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  _showWebAccessInstructions();
-                },
-                icon: const Icon(Icons.open_in_browser, color: Colors.white),
-                label: const Text(
-                  'Abrir en Navegador',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _backToLogin,
+            icon: const Icon(Icons.login, color: Colors.white),
+            label: const Text(
+              'Volver al Login',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: _logout,
-              child: const Text(
-                'Cerrar Sesión',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textoSecundario,
-                ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-          ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: _logout,
+          child: const Text(
+            'Cerrar Sesión',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textoSecundario,
+            ),
+          ),
         ),
       ],
     );
