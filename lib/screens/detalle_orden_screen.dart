@@ -613,45 +613,10 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             ),
             const SizedBox(height: 16),
             
-            // Botones en columna para mejor diseño
-            Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : () => _marcarComoEntregado(),
-                    icon: const Icon(Icons.check_circle, size: 18),
-                    label: const Text('Marcar como Entregado'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4CAF50),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 2,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : () => _marcarComoEnTransito(),
-                    icon: const Icon(Icons.local_shipping, size: 18),
-                    label: const Text('Marcar como En Tránsito'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1976D2),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 2,
-                    ),
-                  ),
-                ),
-              ],
+            // Botón único progresivo (igual que pantalla principal)
+            SizedBox(
+              width: double.infinity,
+              child: _buildBotonAccionProgresivo(),
             ),
           ],
         ),
@@ -801,26 +766,6 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
                 }
               },
             ),
-            const SizedBox(height: 12),
-            _buildOptionTile(
-              icon: Icons.local_shipping,
-              title: 'Marcar como En Tránsito',
-              color: const Color(0xFF1976D2),
-              onTap: () {
-                Navigator.pop(context);
-                _marcarComoEnTransito();
-              },
-            ),
-            const SizedBox(height: 12),
-            _buildOptionTile(
-              icon: Icons.check_circle,
-              title: 'Marcar como Entregado',
-              color: const Color(0xFF4CAF50),
-              onTap: () {
-                Navigator.pop(context);
-                _marcarComoEntregado();
-              },
-            ),
             const SizedBox(height: 30), // Más espacio al final
           ],
         ),
@@ -872,6 +817,76 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
     );
   }
 
+
+  // Botón único progresivo (igual que pantalla principal)
+  Widget _buildBotonAccionProgresivo() {
+    switch (_ordenActual.estado) {
+      case 'POR ENVIAR':
+        return ElevatedButton.icon(
+          onPressed: _isLoading ? null : () => _marcarComoEnTransito(),
+          icon: const Icon(Icons.local_shipping, size: 18),
+          label: const Text('Marcar En Tránsito'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1976D2),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            elevation: 2,
+          ),
+        );
+      
+      case 'EN TRANSITO':
+        return ElevatedButton.icon(
+          onPressed: _isLoading ? null : () => _marcarComoEntregado(),
+          icon: const Icon(Icons.check_circle, size: 18),
+          label: const Text('Marcar Entregado'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF4CAF50),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            elevation: 2,
+          ),
+        );
+      
+      case 'ATRASADO':
+        // Si está atrasado pero aún no se ha marcado como en tránsito
+        return ElevatedButton.icon(
+          onPressed: _isLoading ? null : () => _marcarComoEnTransito(),
+          icon: const Icon(Icons.local_shipping, size: 18),
+          label: const Text('Marcar En Tránsito'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFF9800),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            elevation: 2,
+          ),
+        );
+      
+      default:
+        return ElevatedButton.icon(
+          onPressed: _isLoading ? null : () => _marcarComoEnTransito(),
+          icon: const Icon(Icons.local_shipping, size: 18),
+          label: const Text('Marcar En Tránsito'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1976D2),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            elevation: 2,
+          ),
+        );
+    }
+  }
 
   void _marcarComoEntregado() async {
     // Recargar orden para tener datos más recientes
