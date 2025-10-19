@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
-import 'dashboard_screen.dart';
-import 'repartidor_mobile_screen.dart';
+import 'role_redirect_screen.dart';
 
 class LoginSupabaseScreen extends StatefulWidget {
   const LoginSupabaseScreen({super.key});
@@ -48,28 +47,26 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
               .eq('id', response.user!.id)
               .single();
 
-          String userRole = userData['rol']?.toString().toUpperCase() ?? '';
-          
-          // Navegar según el rol del usuario
-          if (mounted) {
-            Future.microtask(() {
-              if (mounted) {
-                if (userRole == 'REPARTIDOR') {
+            String userRole = userData['rol']?.toString().toUpperCase() ?? '';
+            String userName = userData['nombre'] ?? 'Usuario';
+            String? userEmail = userData['email'];
+            
+            // Navegar a RoleRedirectScreen para validar plataforma
+            if (mounted) {
+              Future.microtask(() {
+                if (mounted) {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (context) => const RepartidorMobileScreen(),
-                    ),
-                  );
-                } else {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => DashboardScreen(userRole: userRole),
+                      builder: (context) => RoleRedirectScreen(
+                        userRole: userRole,
+                        userName: userName,
+                        userEmail: userEmail,
+                      ),
                     ),
                   );
                 }
-              }
-            });
-          }
+              });
+            }
         } catch (e) {
           // Si no encuentra el usuario en la tabla usuarios, intentar buscar por email
           // print('Usuario no encontrado por ID, buscando por email...');
@@ -87,24 +84,22 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
                 .single();
 
             String userRole = userData['rol']?.toString().toUpperCase() ?? '';
+            String userName = userData['nombre'] ?? 'Usuario';
+            String? userEmail = userData['email'];
             
-            // Navegar según el rol del usuario
+            // Navegar a RoleRedirectScreen para validar plataforma
             if (mounted) {
               Future.microtask(() {
                 if (mounted) {
-                  if (userRole == 'REPARTIDOR') {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const RepartidorMobileScreen(),
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => RoleRedirectScreen(
+                        userRole: userRole,
+                        userName: userName,
+                        userEmail: userEmail,
                       ),
-                    );
-                  } else {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => DashboardScreen(userRole: userRole),
-                      ),
-                    );
-                  }
+                    ),
+                  );
                 }
               });
             }
@@ -131,23 +126,22 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
               'created_at': DateTime.now().toIso8601String(),
             });
 
-            // Navegar según el rol del usuario
+            String userName = response.user!.email?.split('@')[0] ?? 'Usuario';
+            String? userEmail = response.user!.email;
+
+            // Navegar a RoleRedirectScreen para validar plataforma
             if (mounted) {
               Future.microtask(() {
                 if (mounted) {
-                  if (rol == 'REPARTIDOR') {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const RepartidorMobileScreen(),
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => RoleRedirectScreen(
+                        userRole: rol,
+                        userName: userName,
+                        userEmail: userEmail,
                       ),
-                    );
-                  } else {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => DashboardScreen(userRole: rol),
-                      ),
-                    );
-                  }
+                    ),
+                  );
                 }
               });
             }
