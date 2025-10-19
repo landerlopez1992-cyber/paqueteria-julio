@@ -856,6 +856,12 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
       return;
     }
 
+    // Si la orden requiere pago, verificar que se haya cobrado
+    if (widget.orden.requierePago && !widget.orden.pagado) {
+      _mostrarDialogoCobroObligatorio();
+      return;
+    }
+
     final confirmado = await _mostrarConfirmacion(
       'Confirmar Entrega',
       '¿Estás seguro de que quieres marcar esta orden como entregada?',
@@ -1021,6 +1027,153 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
         ],
       ),
     );
+  }
+
+  void _mostrarDialogoCobroObligatorio() {
+    final monto = widget.orden.montoCobrar;
+    final moneda = widget.orden.moneda;
+    final simbolo = moneda == 'USD' ? '\$' : '\$';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFFFFFF),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.attach_money, color: Color(0xFF4CAF50), size: 24),
+            SizedBox(width: 12),
+            Text(
+              'Cobro Obligatorio',
+              style: TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '💰 El cliente debe pagar:',
+              style: const TextStyle(
+                color: Color(0xFF2C2C2C),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF4CAF50)),
+              ),
+              child: Text(
+                '$simbolo ${monto.toStringAsFixed(2)} $moneda',
+                style: const TextStyle(
+                  color: Color(0xFF4CAF50),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '❌ Error: Debes cobrar al cliente antes de entregar la orden.',
+              style: TextStyle(
+                color: Color(0xFF666666),
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF666666),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _marcarDineroCobrado();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              'Dinero Cobrado',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _marcarDineroCobrado() async {
+    final confirmado = await _mostrarConfirmacion(
+      'Confirmar Cobro',
+      '¿Confirmas que el cliente ya pagó ${widget.orden.moneda == 'USD' ? '\$' : '\$'} ${widget.orden.montoCobrar.toStringAsFixed(2)} ${widget.orden.moneda}?',
+    );
+    
+    if (confirmado) {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      try {
+        await supabase
+            .from('ordenes')
+            .update({
+              'pagado': true,
+              'fecha_pago': DateTime.now().toIso8601String(),
+            })
+            .eq('id', widget.orden.id);
+        
+        _mostrarMensaje('✅ Dinero cobrado registrado. Ahora puedes entregar la orden.');
+        
+        // Actualizar el estado local
+        setState(() {
+          // La orden se actualizará cuando se recargue desde la base de datos
+        });
+        
+      } catch (e) {
+        _mostrarMensaje('Error al registrar el cobro: $e');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _tomarFotoEntrega() async {
