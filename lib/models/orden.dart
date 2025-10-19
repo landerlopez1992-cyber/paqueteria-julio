@@ -14,6 +14,7 @@ class Orden {
   String estado;
   final DateTime fechaCreacion;
   DateTime? fechaEntrega;
+  final DateTime? fechaEstimadaEntrega;
   final String? notas;
   final String? repartidor;
   final bool esUrgente;
@@ -43,6 +44,7 @@ class Orden {
     required this.estado,
     required this.fechaCreacion,
     this.fechaEntrega,
+    this.fechaEstimadaEntrega,
     this.notas,
     this.repartidor,
     this.esUrgente = false,
@@ -77,6 +79,9 @@ class Orden {
       fechaEntrega: json['fecha_entrega'] != null 
           ? DateTime.parse(json['fecha_entrega'])
           : null,
+      fechaEstimadaEntrega: json['fecha_estimada_entrega'] != null 
+          ? DateTime.parse(json['fecha_estimada_entrega'])
+          : null,
       notas: json['notas'],
       repartidor: json['repartidor_nombre'],
       esUrgente: json['es_urgente'] ?? false,
@@ -110,6 +115,7 @@ class Orden {
       'estado': estado,
       'fechaCreacion': fechaCreacion.toIso8601String(),
       'fechaEntrega': fechaEntrega?.toIso8601String(),
+      'fechaEstimadaEntrega': fechaEstimadaEntrega?.toIso8601String(),
       'notas': notas,
       'repartidor': repartidor,
       'esUrgente': esUrgente,

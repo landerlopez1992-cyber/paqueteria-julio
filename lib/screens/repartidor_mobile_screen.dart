@@ -221,7 +221,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
       case 'ATRASADAS':
         filtradas = filtradas.where((orden) => 
             orden.estado == 'ATRASADO' || 
-            (orden.fechaEntrega != null && orden.fechaEntrega!.isBefore(DateTime.now()))).toList();
+            (orden.fechaEstimadaEntrega != null && orden.fechaEstimadaEntrega!.isBefore(DateTime.now()) && orden.estado != 'ENTREGADO')).toList();
         break;
     }
 
@@ -540,8 +540,8 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
 
   Widget _buildOrdenCard(Orden orden) {
     final esUrgente = orden.esUrgente;
-    final esAtrasada = orden.fechaEntrega != null && 
-                      orden.fechaEntrega!.isBefore(DateTime.now()) && 
+    final esAtrasada = orden.fechaEstimadaEntrega != null && 
+                      orden.fechaEstimadaEntrega!.isBefore(DateTime.now()) && 
                       orden.estado != 'ENTREGADO';
 
     return Container(
