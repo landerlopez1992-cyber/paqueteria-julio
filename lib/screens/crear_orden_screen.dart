@@ -17,6 +17,10 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
   final _notasController = TextEditingController();
   final _montoController = TextEditingController();
   final _notasPagoController = TextEditingController();
+  final _pesoController = TextEditingController();
+  final _largoController = TextEditingController();
+  final _anchoController = TextEditingController();
+  final _altoController = TextEditingController();
 
   // Variables de estado
   List<Map<String, dynamic>> _emisores = [];
@@ -57,6 +61,10 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
     _notasController.dispose();
     _montoController.dispose();
     _notasPagoController.dispose();
+    _pesoController.dispose();
+    _largoController.dispose();
+    _anchoController.dispose();
+    _altoController.dispose();
     super.dispose();
   }
 
@@ -250,6 +258,10 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
         'notas': _notasController.text.trim().isEmpty ? null : _notasController.text.trim(),
         'es_urgente': _esUrgente,
         'cantidad_bultos': _cantidadBultos,
+        'peso': _pesoController.text.trim().isEmpty ? null : double.tryParse(_pesoController.text.trim()),
+        'largo': _largoController.text.trim().isEmpty ? null : double.tryParse(_largoController.text.trim()),
+        'ancho': _anchoController.text.trim().isEmpty ? null : double.tryParse(_anchoController.text.trim()),
+        'alto': _altoController.text.trim().isEmpty ? null : double.tryParse(_altoController.text.trim()),
         'creado_por_nombre': 'Administrador', // TODO: Obtener del usuario actual
         'requiere_pago': _requierePago,
         'monto_cobrar': montoCobrar,
@@ -1037,7 +1049,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
               ),
               const SizedBox(width: 12),
               const Text(
-                'Cantidad de Bultos',
+                'Detalles del Paquete',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -1048,13 +1060,14 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
           ),
           const SizedBox(height: 16),
           const Text(
-            '¿Cuántos bultos/paquetes incluye esta orden?',
+            'Cantidad de Bultos',
             style: TextStyle(
               fontSize: 14,
-              color: Color(0xFF666666),
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2C2C2C),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -1148,12 +1161,118 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
           Center(
             child: Text(
               '$_cantidadBultos ${_cantidadBultos == 1 ? 'bulto' : 'bultos'}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
-                color: const Color(0xFF1976D2),
+                color: Color(0xFF1976D2),
                 fontWeight: FontWeight.w600,
               ),
             ),
+          ),
+          
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 16),
+          
+          // Peso
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _pesoController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Peso (kg)',
+                    hintText: 'Ej: 2.5',
+                    prefixIcon: const Icon(Icons.scale, color: Color(0xFF1976D2)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF1976D2), width: 2),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Dimensiones
+          const Text(
+            'Dimensiones (cm)',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2C2C2C),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _largoController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Largo',
+                    hintText: '0.0',
+                    prefixIcon: const Icon(Icons.straighten, color: Color(0xFF1976D2), size: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF1976D2), width: 2),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _anchoController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Ancho',
+                    hintText: '0.0',
+                    prefixIcon: const Icon(Icons.straighten, color: Color(0xFF1976D2), size: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF1976D2), width: 2),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _altoController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Alto',
+                    hintText: '0.0',
+                    prefixIcon: const Icon(Icons.straighten, color: Color(0xFF1976D2), size: 18),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF1976D2), width: 2),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
