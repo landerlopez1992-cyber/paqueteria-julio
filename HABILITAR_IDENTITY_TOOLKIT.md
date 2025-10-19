@@ -61,3 +61,5 @@ Una vez habilitada la Identity Toolkit API:
 ## ⚠️ Nota
 
 El error "api-key-not-valid" no significa que la API Key esté mal, sino que **la API Key no tiene permisos para usar Identity Toolkit** porque esa API no está habilitada en el proyecto.
+
+

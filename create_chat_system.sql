@@ -142,3 +142,5 @@ CREATE POLICY "Usuarios pueden marcar mensajes como leídos"
 COMMENT ON TABLE public.conversaciones_soporte IS 'Conversaciones de chat entre repartidores y administradores';
 COMMENT ON TABLE public.mensajes_soporte IS 'Mensajes individuales dentro de conversaciones de soporte';
 
+
+

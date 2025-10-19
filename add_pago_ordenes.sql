@@ -33,3 +33,5 @@ WHERE table_name = 'ordenes'
 AND column_name IN ('requiere_pago', 'monto_cobrar', 'moneda', 'pagado', 'fecha_pago', 'notas_pago')
 ORDER BY ordinal_position;
 
+
+

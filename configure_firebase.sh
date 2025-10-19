@@ -170,3 +170,5 @@ echo -e "   ${RED}NO COMPARTAS el archivo firebase_config.dart${NC}"
 echo -e "   ${RED}Ya está agregado a .gitignore${NC}"
 echo ""
 
+
+

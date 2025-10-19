@@ -400,3 +400,5 @@ LEFT JOIN usuarios u_repartidor ON o.repartidor_id = u_repartidor.id;
 -- 1. Crea usuarios en Authentication (admin@paqueteria.com, repartidor@paqueteria.com)
 -- 2. Inserta los registros en la tabla usuarios con los auth_id correspondientes
 -- 3. La app Flutter estará lista para conectarse
+
+

@@ -121,3 +121,5 @@ Para instrucciones detalladas, revisa: `FIREBASE_SETUP.md`
 
 ¡Disfruta tu app de paquetería con Firebase! 🚀📦
 
+
+

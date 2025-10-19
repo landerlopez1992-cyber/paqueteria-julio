@@ -71,3 +71,5 @@ WHERE estado = 'ENTREGADO';
 -- Verificar
 SELECT COUNT(*) as total_ordenes FROM public.ordenes;
 
+
+

@@ -253,3 +253,5 @@ Para problemas o preguntas sobre el sistema de chat, consulta:
 **Última actualización**: Octubre 2025  
 **Autor**: Sistema de Paquetería J Alvarez Express SVC
 
+
+

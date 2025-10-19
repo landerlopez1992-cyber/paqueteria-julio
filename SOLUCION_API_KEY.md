@@ -112,3 +112,5 @@ Antes de probar nuevamente, verifica que:
 ---
 
 **Nota:** El error "api-key-not-valid" significa que la API Key no está autorizada para usar Firebase Authentication desde el dominio web. Esto es una medida de seguridad de Firebase.
+
+

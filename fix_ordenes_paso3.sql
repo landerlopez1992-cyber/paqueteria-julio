@@ -30,3 +30,5 @@ SELECT
     'Secuencia creada' as status,
     last_value as ultimo_valor
 FROM ordenes_numero_seq;
+
+

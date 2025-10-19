@@ -38,3 +38,5 @@ CREATE POLICY "Emisores: authenticated can delete"
 ON public.emisores 
 FOR DELETE 
 USING (auth.role() = 'authenticated');
+
+

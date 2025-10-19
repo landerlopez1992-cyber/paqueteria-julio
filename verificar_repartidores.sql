@@ -14,3 +14,5 @@ SELECT rol, COUNT(*) as cantidad
 FROM usuarios 
 GROUP BY rol
 ORDER BY cantidad DESC;
+
+

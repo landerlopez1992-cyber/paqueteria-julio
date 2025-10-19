@@ -54,3 +54,5 @@ SELECT
     tgrelid::regclass as tabla
 FROM pg_trigger 
 WHERE tgname = 'trigger_set_numero_orden';
+
+

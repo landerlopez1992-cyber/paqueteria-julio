@@ -9,3 +9,5 @@ COMMENT ON COLUMN ordenes.es_urgente IS 'Indica si la orden es urgente (requiere
 SELECT column_name, data_type, is_nullable, column_default
 FROM information_schema.columns
 WHERE table_name = 'ordenes' AND column_name = 'es_urgente';
+
+

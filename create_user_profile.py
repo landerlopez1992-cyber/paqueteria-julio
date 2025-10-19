@@ -53,3 +53,5 @@ if __name__ == "__main__":
     print("  Email: admin@paqueteria.com")
     print("  Password: Admin123!")
     print("  Rol: ADMINISTRADOR")
+
+

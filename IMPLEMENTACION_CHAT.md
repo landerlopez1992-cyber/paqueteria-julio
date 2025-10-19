@@ -271,3 +271,5 @@ Para dudas sobre la implementación, revisar:
 **Fecha**: Octubre 2025  
 **Plataformas**: Web (Admin), Android (Repartidor), iOS (futuro)
 
+
+

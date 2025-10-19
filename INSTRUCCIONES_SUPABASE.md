@@ -131,3 +131,5 @@ Después de configurar Supabase:
 ---
 
 **¿Listo para empezar? Sigue los pasos y avísame cuando hayas ejecutado el SQL y creado los usuarios en Authentication.**
+
+

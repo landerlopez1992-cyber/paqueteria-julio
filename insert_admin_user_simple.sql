@@ -24,3 +24,5 @@ INSERT INTO public.usuarios (
 
 -- Verificar que se insertó correctamente
 SELECT email, nombre, rol, created_at FROM public.usuarios WHERE email = 'admin@paqueteria.com';
+
+

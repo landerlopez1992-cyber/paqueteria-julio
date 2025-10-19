@@ -9,3 +9,5 @@ COMMENT ON COLUMN public.usuarios.tipo_vehiculo IS 'Tipo de vehículo del repart
 UPDATE public.usuarios 
 SET tipo_vehiculo = 'moto'
 WHERE rol = 'REPARTIDOR' AND tipo_vehiculo IS NULL;
+
+

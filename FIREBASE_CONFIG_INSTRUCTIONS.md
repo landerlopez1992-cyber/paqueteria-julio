@@ -112,3 +112,5 @@ Si tienes problemas con la configuración:
 ---
 
 **¡La pantalla de login está lista! Solo necesitas las credenciales reales de Firebase para que funcione completamente.** 🎉
+
+

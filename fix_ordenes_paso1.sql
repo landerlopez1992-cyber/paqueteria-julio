@@ -24,3 +24,5 @@ FROM information_schema.columns
 WHERE table_name = 'ordenes' 
 AND column_name IN ('numero_orden', 'es_urgente')
 ORDER BY column_name;
+
+

@@ -83,3 +83,5 @@ CREATE POLICY "Permitir actualización de configuración" ON configuracion_envio
 -- Verificar que se creó correctamente
 SELECT * FROM configuracion_envios;
 
+
+

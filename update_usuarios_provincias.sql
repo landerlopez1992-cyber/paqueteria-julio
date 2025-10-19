@@ -9,3 +9,5 @@ COMMENT ON COLUMN public.usuarios.provincias_asignadas IS 'Provincias de Cuba as
 UPDATE public.usuarios 
 SET provincias_asignadas = 'La Habana,Matanzas' 
 WHERE rol = 'REPARTIDOR' AND provincias_asignadas IS NULL;
+
+

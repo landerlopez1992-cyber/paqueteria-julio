@@ -344,3 +344,5 @@ class _DetalleEmisorScreenState extends State<DetalleEmisorScreen> {
     );
   }
 }
+
+

@@ -27,3 +27,5 @@ SET
     ELSE NULL
   END
 WHERE telefono IS NULL OR direccion IS NULL OR (rol = 'REPARTIDOR' AND provincias_asignadas IS NULL);
+
+
