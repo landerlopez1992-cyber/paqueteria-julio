@@ -123,9 +123,10 @@ class _RoleRedirectScreenState extends State<RoleRedirectScreen> {
               children: [
                 const SizedBox(height: 40),
                 
-                // Logo transparente sin fondo
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
+                // Logo sin cuadro blanco
+                SizedBox(
+                  width: 150,
+                  height: 150,
                   child: Image.asset(
                     'assets/logo julio.png',
                     width: 150,
