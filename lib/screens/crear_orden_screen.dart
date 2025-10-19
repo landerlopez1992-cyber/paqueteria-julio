@@ -1068,23 +1068,35 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Botón -
-                IconButton(
-                  onPressed: _cantidadBultos > 1
-                      ? () {
-                          setState(() {
-                            _cantidadBultos--;
-                          });
-                        }
-                      : null,
-                  icon: const Icon(Icons.remove_circle_outline),
-                  color: const Color(0xFF1976D2),
-                  iconSize: 36,
-                  tooltip: 'Disminuir cantidad',
+                SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _cantidadBultos > 1
+                        ? () {
+                            setState(() {
+                              _cantidadBultos--;
+                            });
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1976D2),
+                      foregroundColor: Colors.white,
+                      shape: const CircleBorder(),
+                      padding: EdgeInsets.zero,
+                      elevation: 2,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                    ),
+                    child: const Icon(
+                      Icons.remove,
+                      size: 28,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 24),
                 // Número
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -1104,18 +1116,30 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
                 ),
                 const SizedBox(width: 24),
                 // Botón +
-                IconButton(
-                  onPressed: _cantidadBultos < 99
-                      ? () {
-                          setState(() {
-                            _cantidadBultos++;
-                          });
-                        }
-                      : null,
-                  icon: const Icon(Icons.add_circle_outline),
-                  color: const Color(0xFF1976D2),
-                  iconSize: 36,
-                  tooltip: 'Aumentar cantidad',
+                SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _cantidadBultos < 99
+                        ? () {
+                            setState(() {
+                              _cantidadBultos++;
+                            });
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1976D2),
+                      foregroundColor: Colors.white,
+                      shape: const CircleBorder(),
+                      padding: EdgeInsets.zero,
+                      elevation: 2,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      size: 28,
+                    ),
+                  ),
                 ),
               ],
             ),
