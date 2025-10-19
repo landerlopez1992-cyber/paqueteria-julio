@@ -175,7 +175,7 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
     }
   }
 
-  Future<void> _deleteRepartidor(String userId) async {
+  Future<void> _deleteRepartidor(dynamic userId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -202,16 +202,25 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
 
       try {
         // Eliminar de la tabla usuarios
-        await supabase.from('usuarios').delete().eq('id', userId);
+        final result = await supabase
+            .from('usuarios')
+            .delete()
+            .eq('id', userId);
+        
+        print('Resultado de eliminación: $result');
         
         // Recargar lista
         await _loadRepartidores();
         
+        if (!mounted) return;
+        
         _showSuccessDialog('Repartidor eliminado exitosamente');
       } catch (e) {
+        print('Error al eliminar repartidor: $e');
         setState(() {
           _isLoading = false;
         });
+        if (!mounted) return;
         _showErrorDialog('Error al eliminar repartidor: ${e.toString()}');
       }
     }
