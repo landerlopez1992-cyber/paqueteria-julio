@@ -260,6 +260,8 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             const SizedBox(height: 8),
             _buildInfoRow(Icons.description, 'Descripción', widget.orden.descripcion),
             const SizedBox(height: 8),
+            _buildInfoRow(Icons.inventory_2, 'Bultos', '${widget.orden.cantidadBultos} ${widget.orden.cantidadBultos == 1 ? 'bulto' : 'bultos'}'),
+            const SizedBox(height: 8),
             _buildInfoRow(Icons.scale, 'Peso', '${widget.orden.peso ?? 0} kg'),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.straighten, 'Dimensiones', '${widget.orden.largo ?? 0} x ${widget.orden.ancho ?? 0} x ${widget.orden.alto ?? 0} cm'),
@@ -853,6 +855,13 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
     // 🔍 VALIDACIÓN COMPLETA ANTES DE ENTREGAR
     List<String> errores = [];
     
+    // DEBUG: Ver cantidad de bultos
+    print('🔍 DEBUG - Cantidad de bultos: ${widget.orden.cantidadBultos}');
+    print('🔍 DEBUG - Foto obligatoria: $_fotoEntregaObligatoria');
+    print('🔍 DEBUG - Tiene foto: ${_fotoEntregaUrl != null && _fotoEntregaUrl!.isNotEmpty}');
+    print('🔍 DEBUG - Requiere pago: ${widget.orden.requierePago}');
+    print('🔍 DEBUG - Pagado: ${widget.orden.pagado}');
+    
     // 1. Validar foto obligatoria (si está activa)
     if (_fotoEntregaObligatoria && (_fotoEntregaUrl == null || _fotoEntregaUrl!.isEmpty)) {
       errores.add('📷 Falta tomar la foto de entrega');
@@ -864,10 +873,14 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
       errores.add('💰 Falta cobrar ${simbolo}${widget.orden.montoCobrar.toStringAsFixed(2)} ${widget.orden.moneda}');
     }
 
+    print('🔍 DEBUG - Errores encontrados: ${errores.length}');
+    print('🔍 DEBUG - ¿Debe preguntar por bultos? ${widget.orden.cantidadBultos > 1}');
+
     // 3. Mostrar diálogo de confirmación de bultos (solo si hay más de 1)
     if (errores.isEmpty) {
       // Solo preguntar por bultos si hay 2 o más
       if (widget.orden.cantidadBultos > 1) {
+        print('✅ Mostrando diálogo de confirmación de bultos');
         final confirmado = await _mostrarDialogoConfirmacionBultos();
         if (!confirmado) {
           return; // Usuario canceló
@@ -875,6 +888,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
       }
     } else {
       // Hay errores - mostrar diálogo de errores
+      print('❌ Mostrando diálogo de errores: $errores');
       _mostrarDialogoErroresEntrega(errores);
       return;
     }

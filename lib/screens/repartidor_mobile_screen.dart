@@ -881,6 +881,14 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
     // 🔍 VALIDACIÓN COMPLETA ANTES DE ENTREGAR
     List<String> errores = [];
     
+    // DEBUG: Ver cantidad de bultos
+    print('🔍 DEBUG - Orden #${orden.numeroOrden}');
+    print('🔍 DEBUG - Cantidad de bultos: ${orden.cantidadBultos}');
+    print('🔍 DEBUG - Foto obligatoria: $_fotoEntregaObligatoria');
+    print('🔍 DEBUG - Tiene foto: ${orden.fotoEntrega != null && orden.fotoEntrega!.isNotEmpty}');
+    print('🔍 DEBUG - Requiere pago: ${orden.requierePago}');
+    print('🔍 DEBUG - Pagado: ${orden.pagado}');
+    
     // 1. Validar foto obligatoria (si está activa)
     if (_fotoEntregaObligatoria && (orden.fotoEntrega == null || orden.fotoEntrega!.isEmpty)) {
       errores.add('📷 Falta tomar la foto de entrega');
@@ -892,10 +900,14 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
       errores.add('💰 Falta cobrar ${simbolo}${orden.montoCobrar.toStringAsFixed(2)} ${orden.moneda}');
     }
 
+    print('🔍 DEBUG - Errores encontrados: ${errores.length}');
+    print('🔍 DEBUG - ¿Debe preguntar por bultos? ${orden.cantidadBultos > 1}');
+
     // 3. Mostrar diálogo de confirmación de bultos (solo si hay más de 1)
     if (errores.isEmpty) {
       // Solo preguntar por bultos si hay 2 o más
       if (orden.cantidadBultos > 1) {
+        print('✅ Mostrando diálogo de confirmación de bultos');
         final confirmado = await _mostrarDialogoConfirmacionBultos(orden);
         if (!confirmado) {
           return; // Usuario canceló
@@ -903,6 +915,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
       }
     } else {
       // Hay errores - mostrar diálogo de errores
+      print('❌ Mostrando diálogo de errores: $errores');
       _mostrarDialogoErroresEntrega(orden, errores);
       return;
     }
