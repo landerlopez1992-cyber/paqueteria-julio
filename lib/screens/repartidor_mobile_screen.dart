@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../models/orden.dart';
 import 'repartidor_perfil_screen.dart';
+import 'chat_soporte_screen.dart';
 import '../config/app_colors.dart';
 
 class RepartidorMobileScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
   List<Orden> _ordenes = [];
   bool _isLoading = true;
   String? _repartidorNombre;
+  String? _fotoPerfilUrl;
 
   @override
   void initState() {
@@ -42,11 +44,12 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
         try {
           final response = await supabase
               .from('usuarios')
-              .select('nombre')
+              .select('nombre, foto_perfil')
               .eq('id', user.id)
               .single();
           setState(() {
             _repartidorNombre = response['nombre'];
+            _fotoPerfilUrl = response['foto_perfil'];
           });
         } catch (e) {
           // Si no encuentra por ID, intentar por email
@@ -54,22 +57,25 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
             try {
               final response = await supabase
                   .from('usuarios')
-                  .select('nombre')
+                  .select('nombre, foto_perfil')
                   .eq('email', user.email!)
                   .single();
               setState(() {
                 _repartidorNombre = response['nombre'];
+                _fotoPerfilUrl = response['foto_perfil'];
               });
             } catch (e2) {
               // Si tampoco encuentra por email, usar el email como nombre
               setState(() {
                 _repartidorNombre = user.email?.split('@')[0] ?? 'Repartidor';
+                _fotoPerfilUrl = null;
               });
             }
           } else {
             // Si no hay email, usar nombre por defecto
             setState(() {
               _repartidorNombre = 'Repartidor';
+              _fotoPerfilUrl = null;
             });
           }
         }
@@ -217,21 +223,86 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> {
         backgroundColor: AppColors.header,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            const Text(
-              'Repartidor',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            if (_repartidorNombre != null)
-              Text(
-                _repartidorNombre!,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+            // Foto de perfil circular
+            Container(
+              width: 45,
+              height: 45,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF9800),
+                shape: BoxShape.circle,
               ),
+              child: ClipOval(
+                child: _fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty
+                    ? Image.network(
+                        _fotoPerfilUrl!,
+                        width: 45,
+                        height: 45,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Text(
+                              _repartidorNombre != null && _repartidorNombre!.isNotEmpty
+                                  ? _repartidorNombre![0].toUpperCase()
+                                  : 'R',
+                              style: const TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Text(
+                          _repartidorNombre != null && _repartidorNombre!.isNotEmpty
+                              ? _repartidorNombre![0].toUpperCase()
+                              : 'R',
+                          style: const TextStyle(
+                            color: Color(0xFFFFFFFF),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Nombre del repartidor
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Repartidor',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                if (_repartidorNombre != null)
+                  Text(
+                    _repartidorNombre!,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
+                  ),
+              ],
+            ),
           ],
         ),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ChatSoporteScreen(),
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.chat_bubble,
+              color: Colors.white,
+              size: 24,
+            ),
+            tooltip: 'Chat de Soporte',
+          ),
           IconButton(
             onPressed: () {
               Navigator.of(context).push(

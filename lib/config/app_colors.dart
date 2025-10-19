@@ -38,6 +38,12 @@ class AppColors {
   /// Gris para bordes
   static const Color borde = Color(0xFFE0E0E0);
   
+  // Alias para compatibilidad
+  static const Color primary = Color(0xFF1976D2); // Azul principal
+  static const Color accent = Color(0xFFFF9800); // Naranja de acento (igual que botonPrincipal)
+  static const Color success = Color(0xFF4CAF50); // Verde para éxito (igual que exito)
+  static const Color bordeClaro = Color(0xFFE0E0E0); // Alias de borde
+  
   // PROHIBIDO usar:
   // - Theme.of(context).colorScheme.primary
   // - Colors.blue, Colors.green (usar códigos específicos)

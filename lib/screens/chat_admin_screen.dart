@@ -1,0 +1,918 @@
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../main.dart';
+import '../config/app_colors.dart';
+import '../widgets/shared_layout.dart';
+
+class ChatAdminScreen extends StatefulWidget {
+  const ChatAdminScreen({super.key});
+
+  @override
+  State<ChatAdminScreen> createState() => _ChatAdminScreenState();
+}
+
+class _ChatAdminScreenState extends State<ChatAdminScreen> {
+  List<Map<String, dynamic>> _conversaciones = [];
+  bool _cargando = true;
+  RealtimeChannel? _channelConversaciones;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarConversaciones();
+    _suscribirseAConversaciones();
+  }
+
+  @override
+  void dispose() {
+    _channelConversaciones?.unsubscribe();
+    super.dispose();
+  }
+
+  Future<void> _cargarConversaciones() async {
+    try {
+      final conversaciones = await supabase
+          .from('conversaciones_soporte')
+          .select('''
+            *,
+            usuarios!conversaciones_soporte_repartidor_id_fkey(id, nombre, email, foto_perfil),
+            mensajes_soporte(id, mensaje, created_at, leido, remitente_id)
+          ''')
+          .order('ultimo_mensaje_fecha', ascending: false);
+
+      // Contar mensajes no leídos por conversación
+      for (var conv in conversaciones) {
+        final mensajes = conv['mensajes_soporte'] as List;
+        final adminId = supabase.auth.currentUser?.id;
+        
+        conv['mensajes_no_leidos'] = mensajes
+            .where((m) => !m['leido'] && m['remitente_id'] != adminId)
+            .length;
+        
+        conv['ultimo_mensaje'] = mensajes.isNotEmpty
+            ? mensajes.last['mensaje']
+            : 'Sin mensajes';
+      }
+
+      if (mounted) {
+        setState(() {
+          _conversaciones = List<Map<String, dynamic>>.from(conversaciones);
+          _cargando = false;
+        });
+      }
+    } catch (e) {
+      print('Error al cargar conversaciones: $e');
+      if (mounted) {
+        setState(() {
+          _cargando = false;
+        });
+      }
+    }
+  }
+
+  void _suscribirseAConversaciones() {
+    _channelConversaciones = supabase
+        .channel('conversaciones_soporte_admin')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'conversaciones_soporte',
+          callback: (payload) {
+            _cargarConversaciones();
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'mensajes_soporte',
+          callback: (payload) {
+            _cargarConversaciones();
+          },
+        )
+        .subscribe();
+  }
+
+  Future<void> _cerrarConversacion(String conversacionId) async {
+    try {
+      await supabase
+          .from('conversaciones_soporte')
+          .update({'estado': 'CERRADA'})
+          .eq('id', conversacionId);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Conversación cerrada'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+
+      await _cargarConversaciones();
+    } catch (e) {
+      print('Error al cerrar conversación: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al cerrar conversación'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _abrirConversacion(String conversacionId) async {
+    try {
+      await supabase
+          .from('conversaciones_soporte')
+          .update({'estado': 'ABIERTA'})
+          .eq('id', conversacionId);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Conversación reabierta'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+
+      await _cargarConversaciones();
+    } catch (e) {
+      print('Error al abrir conversación: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SharedLayout(
+      currentScreen: 'chat_soporte',
+      child: _cargando
+          ? const Center(child: CircularProgressIndicator())
+          : _conversaciones.isEmpty
+              ? _buildEmptyState()
+              : _buildConversacionesList(),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 80,
+            color: AppColors.textoSecundario.withOpacity(0.3),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'No hay conversaciones',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textoPrincipal,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Cuando los repartidores inicien conversaciones aparecerán aquí',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textoSecundario,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConversacionesList() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Chat de Soporte',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textoPrincipal,
+                  letterSpacing: 0.3,
+                  height: 1.4,
+                ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${_conversaciones.where((c) => c['estado'] == 'ABIERTA').length} activas',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: _cargarConversaciones,
+                    icon: const Icon(Icons.refresh, color: AppColors.primary),
+                    tooltip: 'Actualizar',
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Lista de conversaciones
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.bordeClaro),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: _conversaciones.length,
+                separatorBuilder: (context, index) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final conversacion = _conversaciones[index];
+                  return _buildConversacionItem(conversacion);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConversacionItem(Map<String, dynamic> conversacion) {
+    final repartidor = conversacion['usuarios'];
+    final nombreRepartidor = repartidor?['nombre'] ?? 'Repartidor';
+    final emailRepartidor = repartidor?['email'] ?? '';
+    final fotoPerfilUrl = repartidor?['foto_perfil'];
+    final estado = conversacion['estado'];
+    final mensajesNoLeidos = conversacion['mensajes_no_leidos'] ?? 0;
+    final ultimoMensaje = conversacion['ultimo_mensaje'] ?? 'Sin mensajes';
+    final ultimaFecha = conversacion['ultimo_mensaje_fecha'];
+
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ChatAdminConversacionScreen(
+              conversacionId: conversacion['id'],
+              nombreRepartidor: nombreRepartidor,
+              fotoPerfilUrl: fotoPerfilUrl,
+            ),
+          ),
+        ).then((_) => _cargarConversaciones());
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Row(
+          children: [
+            // Foto de perfil
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: AppColors.accent,
+                  backgroundImage: fotoPerfilUrl != null && fotoPerfilUrl.isNotEmpty
+                      ? NetworkImage(fotoPerfilUrl)
+                      : null,
+                  child: fotoPerfilUrl == null || fotoPerfilUrl.isEmpty
+                      ? Text(
+                          nombreRepartidor[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
+                ),
+                if (mensajesNoLeidos > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 20,
+                        minHeight: 20,
+                      ),
+                      child: Text(
+                        mensajesNoLeidos > 9 ? '9+' : '$mensajesNoLeidos',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 16),
+
+            // Información de la conversación
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        nombreRepartidor,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: mensajesNoLeidos > 0
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                          color: AppColors.textoPrincipal,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: estado == 'ABIERTA'
+                              ? AppColors.success.withOpacity(0.1)
+                              : AppColors.textoSecundario.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          estado == 'ABIERTA' ? 'ABIERTA' : 'CERRADA',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: estado == 'ABIERTA'
+                                ? AppColors.success
+                                : AppColors.textoSecundario,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    emailRepartidor,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textoSecundario,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    ultimoMensaje.length > 60
+                        ? '${ultimoMensaje.substring(0, 60)}...'
+                        : ultimoMensaje,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: mensajesNoLeidos > 0
+                          ? AppColors.textoPrincipal
+                          : AppColors.textoSecundario,
+                      fontWeight: mensajesNoLeidos > 0
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+
+            // Fecha y acciones
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (ultimaFecha != null)
+                  Text(
+                    _formatearFecha(DateTime.parse(ultimaFecha)),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textoSecundario,
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'cerrar') {
+                      _cerrarConversacion(conversacion['id']);
+                    } else if (value == 'abrir') {
+                      _abrirConversacion(conversacion['id']);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    if (estado == 'ABIERTA')
+                      const PopupMenuItem(
+                        value: 'cerrar',
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, size: 18, color: AppColors.success),
+                            SizedBox(width: 8),
+                            Text('Cerrar conversación'),
+                          ],
+                        ),
+                      ),
+                    if (estado == 'CERRADA')
+                      const PopupMenuItem(
+                        value: 'abrir',
+                        child: Row(
+                          children: [
+                            Icon(Icons.replay, size: 18, color: AppColors.primary),
+                            SizedBox(width: 8),
+                            Text('Reabrir conversación'),
+                          ],
+                        ),
+                      ),
+                  ],
+                  child: const Icon(
+                    Icons.more_vert,
+                    color: AppColors.textoSecundario,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatearFecha(DateTime fecha) {
+    final ahora = DateTime.now();
+    final diferencia = ahora.difference(fecha);
+
+    if (diferencia.inDays == 0) {
+      final hora = fecha.hour.toString().padLeft(2, '0');
+      final minuto = fecha.minute.toString().padLeft(2, '0');
+      return '$hora:$minuto';
+    } else if (diferencia.inDays == 1) {
+      return 'Ayer';
+    } else if (diferencia.inDays < 7) {
+      return '${diferencia.inDays}d';
+    } else {
+      return '${fecha.day}/${fecha.month}';
+    }
+  }
+}
+
+// Pantalla de conversación individual para el administrador
+class ChatAdminConversacionScreen extends StatefulWidget {
+  final String conversacionId;
+  final String nombreRepartidor;
+  final String? fotoPerfilUrl;
+
+  const ChatAdminConversacionScreen({
+    super.key,
+    required this.conversacionId,
+    required this.nombreRepartidor,
+    this.fotoPerfilUrl,
+  });
+
+  @override
+  State<ChatAdminConversacionScreen> createState() =>
+      _ChatAdminConversacionScreenState();
+}
+
+class _ChatAdminConversacionScreenState
+    extends State<ChatAdminConversacionScreen> {
+  final TextEditingController _mensajeController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  List<Map<String, dynamic>> _mensajes = [];
+  bool _cargando = true;
+  RealtimeChannel? _channel;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarMensajes();
+    _suscribirseAMensajes();
+  }
+
+  @override
+  void dispose() {
+    _mensajeController.dispose();
+    _scrollController.dispose();
+    _channel?.unsubscribe();
+    super.dispose();
+  }
+
+  Future<void> _cargarMensajes() async {
+    try {
+      final mensajes = await supabase
+          .from('mensajes_soporte')
+          .select('*, usuarios!remitente_id(nombre, rol)')
+          .eq('conversacion_id', widget.conversacionId)
+          .order('created_at', ascending: true);
+
+      if (mounted) {
+        setState(() {
+          _mensajes = List<Map<String, dynamic>>.from(mensajes);
+          _cargando = false;
+        });
+      }
+
+      await _marcarComoLeidos();
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _scrollToBottom();
+      });
+    } catch (e) {
+      print('Error al cargar mensajes: $e');
+      if (mounted) {
+        setState(() {
+          _cargando = false;
+        });
+      }
+    }
+  }
+
+  void _suscribirseAMensajes() {
+    _channel = supabase
+        .channel('mensajes_soporte_admin_${widget.conversacionId}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'mensajes_soporte',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'conversacion_id',
+            value: widget.conversacionId,
+          ),
+          callback: (payload) async {
+            final nuevoMensaje = await supabase
+                .from('mensajes_soporte')
+                .select('*, usuarios!remitente_id(nombre, rol)')
+                .eq('id', payload.newRecord['id'])
+                .single();
+
+            if (mounted) {
+              setState(() {
+                _mensajes.add(nuevoMensaje);
+              });
+              _scrollToBottom();
+
+              final user = supabase.auth.currentUser;
+              if (user != null && nuevoMensaje['remitente_id'] != user.id) {
+                _marcarComoLeidos();
+              }
+            }
+          },
+        )
+        .subscribe();
+  }
+
+  Future<void> _marcarComoLeidos() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await supabase
+          .from('mensajes_soporte')
+          .update({'leido': true})
+          .eq('conversacion_id', widget.conversacionId)
+          .neq('remitente_id', user.id)
+          .eq('leido', false);
+    } catch (e) {
+      print('Error al marcar mensajes como leídos: $e');
+    }
+  }
+
+  Future<void> _enviarMensaje() async {
+    final user = supabase.auth.currentUser;
+    if (user == null || _mensajeController.text.trim().isEmpty) {
+      return;
+    }
+
+    final mensaje = _mensajeController.text.trim();
+    _mensajeController.clear();
+
+    try {
+      await supabase.from('mensajes_soporte').insert({
+        'conversacion_id': widget.conversacionId,
+        'remitente_id': user.id,
+        'mensaje': mensaje,
+        'leido': false,
+      });
+
+      _scrollToBottom();
+    } catch (e) {
+      print('Error al enviar mensaje: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al enviar mensaje'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.fondoGeneral,
+      appBar: AppBar(
+        backgroundColor: AppColors.header,
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.accent,
+              backgroundImage: widget.fotoPerfilUrl != null &&
+                      widget.fotoPerfilUrl!.isNotEmpty
+                  ? NetworkImage(widget.fotoPerfilUrl!)
+                  : null,
+              child: widget.fotoPerfilUrl == null ||
+                      widget.fotoPerfilUrl!.isEmpty
+                  ? Text(
+                      widget.nombreRepartidor[0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              widget.nombreRepartidor,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: _cargando
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Expanded(
+                  child: _mensajes.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No hay mensajes',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textoSecundario,
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _mensajes.length,
+                          itemBuilder: (context, index) {
+                            final mensaje = _mensajes[index];
+                            final user = supabase.auth.currentUser;
+                            final esMio = mensaje['remitente_id'] == user?.id;
+                            final nombreRemitente =
+                                mensaje['usuarios']?['nombre'] ?? 'Usuario';
+                            final rolRemitente =
+                                mensaje['usuarios']?['rol'] ?? '';
+                            final esAdmin = rolRemitente == 'ADMINISTRADOR';
+
+                            return _buildMensajeBurbuja(
+                              mensaje['mensaje'],
+                              esMio,
+                              nombreRemitente,
+                              esAdmin,
+                              DateTime.parse(mensaje['created_at']),
+                            );
+                          },
+                        ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                  child: SafeArea(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _mensajeController,
+                            decoration: InputDecoration(
+                              hintText: 'Escribe un mensaje...',
+                              hintStyle: const TextStyle(
+                                color: AppColors.textoSecundario,
+                                fontSize: 14,
+                              ),
+                              filled: true,
+                              fillColor: AppColors.fondoGeneral,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                            ),
+                            maxLines: null,
+                            textCapitalization: TextCapitalization.sentences,
+                            onSubmitted: (_) => _enviarMensaje(),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Material(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(24),
+                          child: InkWell(
+                            onTap: _enviarMensaje,
+                            borderRadius: BorderRadius.circular(24),
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.send,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildMensajeBurbuja(
+    String mensaje,
+    bool esMio,
+    String nombreRemitente,
+    bool esAdmin,
+    DateTime fecha,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment:
+            esMio ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!esMio) ...[
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.accent,
+              child: const Icon(
+                Icons.delivery_dining,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment:
+                  esMio ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                if (!esMio)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12, bottom: 4),
+                    child: Text(
+                      nombreRemitente,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textoSecundario,
+                      ),
+                    ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: esMio ? AppColors.primary : Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(16),
+                      topRight: const Radius.circular(16),
+                      bottomLeft: Radius.circular(esMio ? 16 : 4),
+                      bottomRight: Radius.circular(esMio ? 4 : 16),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 5,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    mensaje,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: esMio ? Colors.white : AppColors.textoPrincipal,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 12, right: 12),
+                  child: Text(
+                    _formatearHora(fecha),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textoSecundario,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (esMio) ...[
+            const SizedBox(width: 8),
+            const CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.success,
+              child: Icon(
+                Icons.admin_panel_settings,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatearHora(DateTime fecha) {
+    final ahora = DateTime.now();
+    final diferencia = ahora.difference(fecha);
+
+    if (diferencia.inDays == 0) {
+      final hora = fecha.hour.toString().padLeft(2, '0');
+      final minuto = fecha.minute.toString().padLeft(2, '0');
+      return '$hora:$minuto';
+    } else if (diferencia.inDays == 1) {
+      return 'Ayer';
+    } else if (diferencia.inDays < 7) {
+      return '${diferencia.inDays} días';
+    } else {
+      return '${fecha.day}/${fecha.month}/${fecha.year}';
+    }
+  }
+}
+

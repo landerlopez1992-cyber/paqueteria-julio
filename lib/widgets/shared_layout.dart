@@ -6,6 +6,7 @@ import '../screens/emisores_screen.dart';
 import '../screens/destinatarios_screen.dart';
 import '../screens/crear_orden_screen.dart';
 import '../screens/envios_ajustes_screen.dart';
+import '../screens/chat_admin_screen.dart';
 import '../screens/login_supabase_screen.dart';
 
 class SharedLayout extends StatefulWidget {
@@ -25,6 +26,7 @@ class SharedLayout extends StatefulWidget {
 class _SharedLayoutState extends State<SharedLayout> {
   String? _userName;
   String? _userEmail;
+  String? _fotoPerfilUrl;
   
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _SharedLayoutState extends State<SharedLayout> {
           setState(() {
             _userName = userData['nombre'] ?? user.email?.split('@')[0] ?? 'Usuario';
             _userEmail = user.email;
+            _fotoPerfilUrl = userData['foto_perfil'];
           });
         }
       }
@@ -56,6 +59,7 @@ class _SharedLayoutState extends State<SharedLayout> {
         setState(() {
           _userName = user.email?.split('@')[0] ?? 'Usuario';
           _userEmail = user.email;
+          _fotoPerfilUrl = null;
         });
       }
     }
@@ -91,6 +95,11 @@ class _SharedLayoutState extends State<SharedLayout> {
       'title': 'Crear Orden',
       'icon': Icons.add_box,
       'route': 'crear_orden',
+    },
+    {
+      'title': 'Chat Soporte',
+      'icon': Icons.chat_bubble,
+      'route': 'chat_soporte',
     },
   ];
 
@@ -206,17 +215,40 @@ class _SharedLayoutState extends State<SharedLayout> {
                           color: const Color(0xFFFF9800),
                           shape: BoxShape.circle,
                         ),
-                        child: Center(
-                          child: Text(
-                            _userName != null && _userName!.isNotEmpty
-                                ? _userName![0].toUpperCase()
-                                : 'U',
-                            style: const TextStyle(
-                              color: Color(0xFFFFFFFF),
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        child: ClipOval(
+                          child: _fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty
+                              ? Image.network(
+                                  _fotoPerfilUrl!,
+                                  width: 45,
+                                  height: 45,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Text(
+                                        _userName != null && _userName!.isNotEmpty
+                                            ? _userName![0].toUpperCase()
+                                            : 'U',
+                                        style: const TextStyle(
+                                          color: Color(0xFFFFFFFF),
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Center(
+                                  child: Text(
+                                    _userName != null && _userName!.isNotEmpty
+                                        ? _userName![0].toUpperCase()
+                                        : 'U',
+                                    style: const TextStyle(
+                                      color: Color(0xFFFFFFFF),
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -348,6 +380,9 @@ class _SharedLayoutState extends State<SharedLayout> {
           currentScreen: 'crear_orden',
           child: CrearOrdenScreen(),
         );
+        break;
+      case 'chat_soporte':
+        destinationScreen = const ChatAdminScreen();
         break;
       default:
         return;
