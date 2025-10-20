@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import '../models/orden.dart';
 import 'repartidor_perfil_screen.dart';
@@ -22,6 +23,8 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
   String? _repartidorNombre;
   String? _fotoPerfilUrl;
   bool _fotoEntregaObligatoria = true; // Por defecto activado
+  int _mensajesNoLeidos = 0;
+  RealtimeChannel? _channelNotificaciones;
 
   @override
   void initState() {
@@ -33,6 +36,8 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
       await _obtenerNombreRepartidor();
       await _cargarConfiguracionFoto();
       await _cargarOrdenes();
+      await _cargarMensajesNoLeidos();
+      _suscribirseANotificaciones();
     });
   }
 
@@ -40,6 +45,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
+    _channelNotificaciones?.unsubscribe();
     super.dispose();
   }
 
@@ -210,6 +216,72 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
     }
   }
 
+  Future<void> _cargarMensajesNoLeidos() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      // Contar mensajes no leídos donde el repartidor no es el remitente
+      final response = await supabase
+          .from('mensajes_soporte')
+          .select('id')
+          .eq('leido', false)
+          .neq('remitente_auth_id', user.id);
+
+      if (mounted) {
+        setState(() {
+          _mensajesNoLeidos = response.length;
+        });
+      }
+    } catch (e) {
+      print('Error al cargar mensajes no leídos: $e');
+    }
+  }
+
+  void _suscribirseANotificaciones() {
+    _channelNotificaciones = supabase
+        .channel('notificaciones_chat_repartidor')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'mensajes_soporte',
+          callback: (payload) {
+            final user = supabase.auth.currentUser;
+            if (user != null && payload.newRecord['remitente_auth_id'] != user.id) {
+              _cargarMensajesNoLeidos();
+            }
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'mensajes_soporte',
+          callback: (payload) {
+            _cargarMensajesNoLeidos();
+          },
+        )
+        .subscribe();
+  }
+
+  Future<void> _marcarMensajesComoLeidos() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      // Marcar todos los mensajes no leídos como leídos (donde el repartidor no es el remitente)
+      await supabase
+          .from('mensajes_soporte')
+          .update({'leido': true})
+          .eq('leido', false)
+          .neq('remitente_auth_id', user.id);
+
+      // Actualizar contador
+      _cargarMensajesNoLeidos();
+    } catch (e) {
+      print('Error al marcar mensajes como leídos: $e');
+    }
+  }
+
   void _filtrarOrdenes() {
     setState(() {
       // La lógica de filtrado se maneja en el getter _ordenesFiltradas
@@ -328,16 +400,47 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
         actions: [
           IconButton(
             onPressed: () {
+              // Marcar mensajes como leídos al entrar al chat
+              _marcarMensajesComoLeidos();
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const ChatSoporteScreen(),
                 ),
               );
             },
-            icon: const Icon(
-              Icons.chat_bubble,
-              color: Colors.white,
-              size: 24,
+            icon: Stack(
+              children: [
+                const Icon(
+                  Icons.chat_bubble,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                if (_mensajesNoLeidos > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        _mensajesNoLeidos > 99 ? '99+' : _mensajesNoLeidos.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             tooltip: 'Chat de Soporte',
           ),
