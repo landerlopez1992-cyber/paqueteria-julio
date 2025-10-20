@@ -561,18 +561,18 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: esUrgente ? const Color(0xFFFFEBEE) : Colors.white,
+        color: esUrgente ? const Color(0xFFFFEBEE) : const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
         border: esUrgente 
             ? Border.all(color: const Color(0xFFDC2626), width: 1)
-            : null,
+            : Border.all(color: const Color(0xFFE0E0E0), width: 1),
       ),
       child: InkWell(
         onTap: () => _mostrarDetallesOrden(orden),
