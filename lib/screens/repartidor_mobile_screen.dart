@@ -191,7 +191,17 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
       final primerNombre = repartidorNombre.split(' ')[0]; // "Omar" de "Omar Jones"
       final response = await supabase
           .from('ordenes')
-          .select()
+          .select('''
+            *,
+            destinatarios!inner(
+              nombre,
+              telefono,
+              direccion,
+              provincia,
+              municipio,
+              consejo_popular_batey
+            )
+          ''')
           .or('repartidor_nombre.eq.$repartidorNombre,repartidor_nombre.ilike.%$primerNombre%')
           // Cargar TODAS las órdenes del repartidor (activas y entregadas)
           .order('fecha_creacion', ascending: false)

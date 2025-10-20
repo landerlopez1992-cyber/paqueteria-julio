@@ -166,6 +166,10 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             ],
             const SizedBox(height: 8),
             _buildInfoRow(Icons.description, 'Descripción', widget.orden.descripcion),
+            if (widget.orden.notas != null && widget.orden.notas!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.note, 'Notas Adicionales', widget.orden.notas!),
+            ],
           ],
         ),
       ),

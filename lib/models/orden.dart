@@ -7,6 +7,9 @@ class Orden {
   final String direccionDestino;
   final String? telefonoDestinatario;
   final String? ciudadDestino;
+  final String? provinciaDestino;
+  final String? municipioDestino;
+  final String? consejoPopularBatey;
   final double? peso;
   final double? largo;
   final double? ancho;
@@ -40,6 +43,9 @@ class Orden {
     required this.direccionDestino,
     this.telefonoDestinatario,
     this.ciudadDestino,
+    this.provinciaDestino,
+    this.municipioDestino,
+    this.consejoPopularBatey,
     this.peso,
     this.largo,
     this.ancho,
@@ -67,11 +73,14 @@ class Orden {
       id: json['id'].toString(),
       numeroOrden: json['numero_orden'] ?? 'N/A',
       emisor: json['emisor_nombre'] ?? 'Sin emisor',
-      receptor: json['destinatario_nombre'] ?? 'Sin destinatario',
+      receptor: json['destinatario_nombre'] ?? json['destinatarios']?['nombre'] ?? 'Sin destinatario',
       descripcion: json['descripcion'] ?? '',
       direccionDestino: json['direccion_destino'] ?? '',
-      telefonoDestinatario: json['telefono_destinatario'],
+      telefonoDestinatario: json['telefono_destinatario'] ?? json['destinatarios']?['telefono'],
       ciudadDestino: json['ciudad_destino'],
+      provinciaDestino: json['provincia_destino'] ?? json['destinatarios']?['provincia'],
+      municipioDestino: json['municipio_destino'] ?? json['destinatarios']?['municipio'],
+      consejoPopularBatey: json['consejo_popular_batey'] ?? json['destinatarios']?['consejo_popular_batey'],
       peso: json['peso']?.toDouble(),
       largo: json['largo']?.toDouble(),
       ancho: json['ancho']?.toDouble(),
@@ -113,6 +122,9 @@ class Orden {
       'direccionDestino': direccionDestino,
       'telefonoDestinatario': telefonoDestinatario,
       'ciudadDestino': ciudadDestino,
+      'provinciaDestino': provinciaDestino,
+      'municipioDestino': municipioDestino,
+      'consejoPopularBatey': consejoPopularBatey,
       'peso': peso,
       'largo': largo,
       'ancho': ancho,
