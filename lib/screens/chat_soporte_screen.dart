@@ -141,8 +141,13 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
   }
 
   void _suscribirseAMensajes() {
-    if (_conversacionId == null) return;
+    if (_conversacionId == null) {
+      print('⚠️ No hay conversación para suscribirse');
+      return;
+    }
 
+    print('🔔 Suscribiéndose a mensajes de conversación: $_conversacionId');
+    
     _channel = supabase
         .channel('mensajes_soporte_$_conversacionId')
         .onPostgresChanges(
@@ -155,6 +160,8 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
             value: _conversacionId,
           ),
           callback: (payload) async {
+            print('🔔 Nuevo mensaje recibido por realtime!');
+            
             // Obtener el mensaje completo
             final nuevoMensaje = await supabase
                 .from('mensajes_soporte')
@@ -162,10 +169,13 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
                 .eq('id', payload.newRecord['id'])
                 .single();
 
+            print('📨 Mensaje completo: ${nuevoMensaje['mensaje']}');
+
             if (mounted) {
               setState(() {
                 _mensajes.add(nuevoMensaje);
               });
+              print('✅ Mensaje agregado a la UI, total: ${_mensajes.length}');
               _scrollToBottom();
               
               // Marcar como leído si no es del usuario actual
@@ -177,6 +187,8 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
           },
         )
         .subscribe();
+    
+    print('✅ Suscripción a realtime completada');
   }
 
   Future<void> _marcarComoLeidos() async {
@@ -267,6 +279,9 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
       });
 
       print('✅ Mensaje enviado exitosamente');
+      
+      // Recargar mensajes para asegurar que se muestren
+      await _cargarMensajes();
       _scrollToBottom();
     } catch (e) {
       print('❌ Error al enviar mensaje: $e');
