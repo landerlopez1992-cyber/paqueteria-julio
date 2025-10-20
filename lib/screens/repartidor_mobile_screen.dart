@@ -417,6 +417,21 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
           ],
         ),
         actions: [
+          // Botón de refrescar
+          IconButton(
+            onPressed: () async {
+              print('🔄 Refrescando datos...');
+              await _cargarOrdenes();
+              await _cargarMensajesNoLeidos();
+              _mostrarMensaje('Datos actualizados');
+            },
+            icon: const Icon(
+              Icons.refresh,
+              color: Colors.white,
+              size: 24,
+            ),
+            tooltip: 'Refrescar',
+          ),
           IconButton(
             onPressed: () {
               // Marcar mensajes como leídos al entrar al chat
@@ -503,7 +518,13 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
           ),
         ],
       ),
-      body: Column(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          print('🔄 Pull-to-refresh activado...');
+          await _cargarOrdenes();
+          await _cargarMensajesNoLeidos();
+        },
+        child: Column(
         children: [
           // Barra de búsqueda
           Container(
@@ -612,6 +633,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
                       ),
           ),
         ],
+        ),
       ),
     );
   }
