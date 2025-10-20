@@ -166,28 +166,62 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
           ),
           callback: (payload) async {
             print('🔔 Nuevo mensaje recibido por realtime!');
+            print('📦 Payload completo: $payload');
             
-            // Obtener el mensaje completo
-            final nuevoMensaje = await supabase
-                .from('mensajes_soporte')
-                .select('*')
-                .eq('id', payload.newRecord['id'])
-                .single();
+            try {
+              // Usar directamente los datos del payload
+              final nuevoMensaje = payload.newRecord;
+              print('📨 Mensaje del payload: ${nuevoMensaje['mensaje']}');
 
-            print('📨 Mensaje completo: ${nuevoMensaje['mensaje']}');
-
-            if (mounted) {
-              setState(() {
-                _mensajes.add(nuevoMensaje);
-              });
-              print('✅ Mensaje agregado a la UI, total: ${_mensajes.length}');
-              _scrollToBottom();
-              
-              // Marcar como leído si no es del usuario actual
-              final user = supabase.auth.currentUser;
-              if (user != null && nuevoMensaje['remitente_auth_id'] != user.id) {
-                _marcarComoLeidos();
+              if (mounted) {
+                setState(() {
+                  _mensajes.add(nuevoMensaje);
+                });
+                print('✅ Mensaje agregado a la UI, total: ${_mensajes.length}');
+                
+                // Scroll automático después de un pequeño delay
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  _scrollToBottom();
+                });
+                
+                // Marcar como leído si no es del usuario actual
+                final user = supabase.auth.currentUser;
+                if (user != null && nuevoMensaje['remitente_auth_id'] != user.id) {
+                  _marcarComoLeidos();
+                }
               }
+            } catch (e) {
+              print('❌ Error procesando mensaje realtime: $e');
+              // Si hay error, recargar todos los mensajes
+              _cargarMensajes();
+            }
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'mensajes_soporte',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'conversacion_id',
+            value: _conversacionId,
+          ),
+          callback: (payload) async {
+            print('🔄 Mensaje actualizado por realtime!');
+            try {
+              final mensajeActualizado = payload.newRecord;
+              final mensajeId = mensajeActualizado['id'];
+              
+              if (mounted) {
+                setState(() {
+                  final index = _mensajes.indexWhere((m) => m['id'] == mensajeId);
+                  if (index != -1) {
+                    _mensajes[index] = mensajeActualizado;
+                  }
+                });
+              }
+            } catch (e) {
+              print('❌ Error actualizando mensaje: $e');
             }
           },
         )
