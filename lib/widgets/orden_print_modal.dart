@@ -144,7 +144,6 @@ class OrdenPrintModal extends StatelessWidget {
                       'Emisor',
                       [
                         _buildInfoRow('Nombre:', orden.emisor),
-                        _buildInfoRow('Dirección origen:', orden.direccionOrigen ?? 'N/A'),
                       ],
                     ),
                     
@@ -189,8 +188,6 @@ class OrdenPrintModal extends StatelessWidget {
                         _buildInfoRow('Estado:', orden.estado),
                         if (orden.fechaEntrega != null)
                           _buildInfoRow('Fecha de entrega:', _formatFecha(orden.fechaEntrega!)),
-                        if (orden.repartidorNombre != null)
-                          _buildInfoRow('Repartidor:', orden.repartidorNombre!),
                       ],
                     ),
                     
