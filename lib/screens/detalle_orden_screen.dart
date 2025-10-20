@@ -142,9 +142,9 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Información General',
-                  style: const TextStyle(
+                const Text(
+                  'Información de la Orden',
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2C2C2C),
@@ -159,15 +159,13 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             const SizedBox(height: 8),
             _buildInfoRow(Icons.person, 'Emisor', widget.orden.emisor),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.person_outline, 'Destinatario', widget.orden.receptor),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.location_on, 'Dirección', widget.orden.direccionDestino),
-            const SizedBox(height: 8),
             _buildInfoRow(Icons.schedule, 'Fecha de Creación', _formatearFecha(widget.orden.fechaCreacion)),
             if (widget.orden.fechaEntrega != null) ...[
               const SizedBox(height: 8),
               _buildInfoRow(Icons.local_shipping, 'Fecha de Entrega', _formatearFecha(widget.orden.fechaEntrega)),
             ],
+            const SizedBox(height: 8),
+            _buildInfoRow(Icons.description, 'Descripción', widget.orden.descripcion),
           ],
         ),
       ),
@@ -185,7 +183,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Información de Contacto',
+              'Información del Destinatario',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -193,6 +191,18 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            
+            // Nombre del destinatario
+            _buildInfoRow(Icons.person_outline, 'Nombre', widget.orden.receptor),
+            const SizedBox(height: 12),
+            
+            // Dirección de entrega
+            _buildInfoRow(Icons.location_on, 'Dirección de Entrega', widget.orden.direccionDestino),
+            const SizedBox(height: 12),
+            
+            // Ciudad
+            _buildInfoRow(Icons.location_city, 'Ciudad', widget.orden.ciudadDestino ?? 'No especificada'),
+            const SizedBox(height: 12),
             
             if (widget.orden.telefonoDestinatario != null && widget.orden.telefonoDestinatario!.isNotEmpty) ...[
               Row(
@@ -222,6 +232,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
                       ],
                     ),
                   ),
+                  // Botón de llamar
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF4CAF50),
@@ -230,6 +241,21 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
                     child: IconButton(
                       onPressed: () => _llamarDestinatario(widget.orden.telefonoDestinatario!),
                       icon: const Icon(Icons.call, color: Colors.white, size: 20),
+                      style: IconButton.styleFrom(
+                        padding: const EdgeInsets.all(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Botón de mensaje
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1976D2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () => _enviarMensajeDestinatario(widget.orden.telefonoDestinatario!),
+                      icon: const Icon(Icons.message, color: Colors.white, size: 20),
                       style: IconButton.styleFrom(
                         padding: const EdgeInsets.all(12),
                       ),
@@ -269,7 +295,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Detalles de Entrega',
+              'Detalles del Paquete',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -278,11 +304,7 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
             ),
             const SizedBox(height: 16),
             
-            _buildInfoRow(Icons.location_city, 'Ciudad', widget.orden.ciudadDestino ?? 'No especificada'),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.description, 'Descripción', widget.orden.descripcion),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.inventory_2, 'Bultos', '${widget.orden.cantidadBultos} ${widget.orden.cantidadBultos == 1 ? 'bulto' : 'bultos'}'),
+            _buildInfoRow(Icons.inventory_2, 'Cantidad de Bultos', '${widget.orden.cantidadBultos} ${widget.orden.cantidadBultos == 1 ? 'bulto' : 'bultos'}'),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.scale, 'Peso', '${widget.orden.peso ?? 0} lb'),
             const SizedBox(height: 8),
@@ -725,6 +747,20 @@ class _DetalleOrdenScreenState extends State<DetalleOrdenScreen> {
       }
     } catch (e) {
       _mostrarMensaje('Error al realizar la llamada: $e');
+    }
+  }
+
+  void _enviarMensajeDestinatario(String telefono) async {
+    final Uri smsUri = Uri(scheme: 'sms', path: telefono);
+    
+    try {
+      if (await canLaunchUrl(smsUri)) {
+        await launchUrl(smsUri);
+      } else {
+        _mostrarMensaje('No se puede enviar mensaje');
+      }
+    } catch (e) {
+      _mostrarMensaje('Error al enviar mensaje: $e');
     }
   }
 
