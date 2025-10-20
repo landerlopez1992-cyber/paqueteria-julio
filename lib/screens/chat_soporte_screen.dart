@@ -225,9 +225,17 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
             }
           },
         )
-        .subscribe();
+        .subscribe((status, error) {
+      print('📡 Estado de suscripción: $status');
+      if (error != null) {
+        print('❌ Error en suscripción: $error');
+      }
+      if (status == RealtimeSubscribeStatus.subscribed) {
+        print('✅ Suscripción CONFIRMADA y ACTIVA para conversación: $_conversacionId');
+      }
+    });
     
-    print('✅ Suscripción a realtime completada');
+    print('✅ Suscripción a realtime iniciada');
   }
 
   Future<void> _marcarComoLeidos() async {

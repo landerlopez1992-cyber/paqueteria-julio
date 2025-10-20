@@ -1009,9 +1009,17 @@ class _ChatAdminConversacionScreenState
             }
           },
         )
-        .subscribe();
+        .subscribe((status, error) {
+      print('📡 Estado de suscripción ADMIN: $status');
+      if (error != null) {
+        print('❌ Error en suscripción ADMIN: $error');
+      }
+      if (status == RealtimeSubscribeStatus.subscribed) {
+        print('✅ Suscripción CONFIRMADA y ACTIVA (ADMIN) para conversación: ${widget.conversacionId}');
+      }
+    });
     
-    print('✅ Suscripción a realtime completada (admin)');
+    print('✅ Suscripción a realtime iniciada (admin)');
   }
 
   Future<void> _marcarComoLeidos() async {
