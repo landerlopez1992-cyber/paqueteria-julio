@@ -21,6 +21,8 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
   List<Map<String, dynamic>> _emisoresFiltrados = [];
   bool _isLoading = false;
   bool _showCreateForm = false;
+  Set<int> _selectedEmisores = {}; // IDs de emisores seleccionados
+  bool _selectAll = false; // Estado del checkbox "seleccionar todos"
 
   @override
   void initState() {
@@ -193,6 +195,86 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
     );
   }
 
+  // Seleccionar/deseleccionar todos los emisores
+  void _toggleSelectAll(bool? value) {
+    setState(() {
+      _selectAll = value ?? false;
+      if (_selectAll) {
+        // Seleccionar todos los emisores filtrados
+        _selectedEmisores = _emisoresFiltrados.map((e) => e['id'] as int).toSet();
+      } else {
+        // Deseleccionar todos
+        _selectedEmisores.clear();
+      }
+    });
+  }
+
+  // Seleccionar/deseleccionar un emisor individual
+  void _toggleSelectEmisor(int id) {
+    setState(() {
+      if (_selectedEmisores.contains(id)) {
+        _selectedEmisores.remove(id);
+        _selectAll = false;
+      } else {
+        _selectedEmisores.add(id);
+        // Si se seleccionaron todos, marcar el checkbox general
+        if (_selectedEmisores.length == _emisoresFiltrados.length) {
+          _selectAll = true;
+        }
+      }
+    });
+  }
+
+  // Eliminar emisores seleccionados
+  Future<void> _deleteSelectedEmisores() async {
+    if (_selectedEmisores.isEmpty) return;
+
+    // Mostrar diálogo de confirmación
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirmar eliminación'),
+        content: Text(
+          '¿Estás seguro de que deseas eliminar ${_selectedEmisores.length} emisor(es)?'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      // Eliminar todos los emisores seleccionados
+      await supabase
+          .from('emisores')
+          .delete()
+          .in_('id', _selectedEmisores.toList());
+
+      _showSuccessDialog('${_selectedEmisores.length} emisor(es) eliminado(s) exitosamente');
+      
+      setState(() {
+        _selectedEmisores.clear();
+        _selectAll = false;
+      });
+      
+      _loadEmisores();
+    } catch (e) {
+      _showErrorDialog('Error al eliminar emisores: ${e.toString()}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -206,27 +288,66 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Gestión de Emisores',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C2C2C),
-                ),
+              Row(
+                children: [
+                  const Text(
+                    'Gestión de Emisores',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2C2C2C),
+                    ),
+                  ),
+                  if (_selectedEmisores.isNotEmpty) ...[
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4CAF50),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_selectedEmisores.length} seleccionado(s)',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _showCreateForm = !_showCreateForm;
-                  });
-                },
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(_showCreateForm ? 'Cancelar' : 'Crear Emisor'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF9800),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
+              Row(
+                children: [
+                  if (_selectedEmisores.isNotEmpty) ...[
+                    ElevatedButton.icon(
+                      onPressed: _deleteSelectedEmisores,
+                      icon: const Icon(Icons.delete, size: 18),
+                      label: const Text('Eliminar seleccionados'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFDC2626),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _showCreateForm = !_showCreateForm;
+                      });
+                    },
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(_showCreateForm ? 'Cancelar' : 'Crear Emisor'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF9800),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -450,8 +571,15 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
                           child: DataTable(
                             columnSpacing: 20,
                             headingRowColor: MaterialStateProperty.all(const Color(0xFFF5F5F5)),
-                            columns: const [
+                            columns: [
                               DataColumn(
+                                label: Checkbox(
+                                  value: _selectAll,
+                                  onChanged: _toggleSelectAll,
+                                  activeColor: const Color(0xFF4CAF50),
+                                ),
+                              ),
+                              const DataColumn(
                                 label: Text(
                                   'ID',
                                   style: TextStyle(
@@ -535,32 +663,40 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
                             rows: _emisoresFiltrados.asMap().entries.map((entry) {
                               final index = entry.key;
                               final emisor = entry.value;
+                              final emisorId = emisor['id'] as int;
                               final fechaRegistro = emisor['created_at'] != null
                                   ? DateTime.parse(emisor['created_at'])
                                   : null;
                               
                               return DataRow(
-                                onSelectChanged: (selected) async {
-                                  if (selected == true) {
-                                    await Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => DetalleEmisorScreen(
-                                          emisor: emisor,
-                                        ),
-                                      ),
-                                    );
-                                    _loadEmisores();
-                                  }
-                                },
                                 cells: [
                                   DataCell(
-                                    SizedBox(
-                                      width: 40,
-                                      child: Text(
-                                        '${(index + 1).toString().padLeft(3, '0')}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Color(0xFF2C2C2C),
+                                    Checkbox(
+                                      value: _selectedEmisores.contains(emisorId),
+                                      onChanged: (value) => _toggleSelectEmisor(emisorId),
+                                      activeColor: const Color(0xFF4CAF50),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    InkWell(
+                                      onTap: () async {
+                                        await Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => DetalleEmisorScreen(
+                                              emisor: emisor,
+                                            ),
+                                          ),
+                                        );
+                                        _loadEmisores();
+                                      },
+                                      child: SizedBox(
+                                        width: 40,
+                                        child: Text(
+                                          '${(index + 1).toString().padLeft(3, '0')}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF2C2C2C),
+                                          ),
                                         ),
                                       ),
                                     ),
