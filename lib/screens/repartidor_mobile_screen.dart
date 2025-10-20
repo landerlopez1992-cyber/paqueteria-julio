@@ -571,8 +571,8 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
           ),
         ],
         border: esUrgente 
-            ? Border.all(color: const Color(0xFFDC2626), width: 1)
-            : Border.all(color: const Color(0xFFE0E0E0), width: 1),
+            ? Border.all(color: const Color(0xFFDC2626), width: 2)
+            : Border.all(color: Colors.black, width: 2),
       ),
       child: InkWell(
         onTap: () => _mostrarDetallesOrden(orden),
