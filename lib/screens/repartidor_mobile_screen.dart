@@ -493,12 +493,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
             tooltip: 'Actualizar',
           ),
           IconButton(
-            onPressed: () async {
-              await supabase.auth.signOut();
-              if (mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-              }
-            },
+            onPressed: _mostrarConfirmacionLogout,
             icon: const Icon(
               Icons.logout,
               color: Colors.white,
@@ -1104,6 +1099,79 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  Future<void> _mostrarConfirmacionLogout() async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.logout, color: Colors.red, size: 28),
+            const SizedBox(width: 12),
+            const Text(
+              'Cerrar Sesión',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2C2C2C),
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          '¿Estás seguro de que quieres cerrar sesión?',
+          style: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF2C2C2C),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Color(0xFF666666),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Cerrar Sesión',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      try {
+        print('🚪 Cerrando sesión...');
+        await supabase.auth.signOut();
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+        }
+      } catch (e) {
+        print('❌ Error al cerrar sesión: $e');
+        if (mounted) {
+          _mostrarMensaje('Error al cerrar sesión: $e');
+        }
+      }
+    }
   }
 
   Future<bool> _mostrarConfirmacion(String titulo, String mensaje) async {
