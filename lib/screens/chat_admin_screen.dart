@@ -968,15 +968,12 @@ class _ChatAdminConversacionScreenState
                             final user = supabase.auth.currentUser;
                             final esMio = mensaje['remitente_auth_id'] == user?.id;
                             final nombreRemitente = esMio ? 'Administrador' : widget.nombreRepartidor;
-                            final rolRemitente =
-                                mensaje['usuarios']?['rol'] ?? '';
-                            final esAdmin = rolRemitente == 'ADMINISTRADOR';
 
                             return _buildMensajeBurbuja(
                               mensaje['mensaje'],
                               esMio,
                               nombreRemitente,
-                              esAdmin,
+                              esMio, // esAdmin = esMio (si es mío, es admin)
                               DateTime.parse(mensaje['created_at']),
                             );
                           },
@@ -1062,7 +1059,7 @@ class _ChatAdminConversacionScreenState
     DateTime fecha,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment:
             esMio ? MainAxisAlignment.end : MainAxisAlignment.start,

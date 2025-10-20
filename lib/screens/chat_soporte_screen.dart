@@ -480,7 +480,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
     DateTime fecha,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: esMio ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
