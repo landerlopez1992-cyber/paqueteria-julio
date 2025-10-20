@@ -479,7 +479,12 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
             tooltip: 'Mi Perfil',
           ),
           IconButton(
-            onPressed: _cargarOrdenes,
+            onPressed: () async {
+              print('🔄 Botón actualizar presionado...');
+              await _cargarOrdenes();
+              await _cargarMensajesNoLeidos();
+              _mostrarMensaje('Datos actualizados');
+            },
             icon: const Icon(
               Icons.refresh,
               color: Colors.white,
