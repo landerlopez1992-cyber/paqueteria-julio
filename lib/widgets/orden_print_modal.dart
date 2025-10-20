@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:printing/printing.dart';
@@ -495,7 +496,7 @@ class OrdenPrintModal extends StatelessWidget {
     return pdf;
   }
 
-  Future<List<int>?> _generarQRBytes() async {
+  Future<Uint8List?> _generarQRBytes() async {
     try {
       // Generar QR como imagen para PDF
       final qrValidationResult = QrValidator.validate(
