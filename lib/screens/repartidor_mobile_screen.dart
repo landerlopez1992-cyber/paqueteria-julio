@@ -154,11 +154,11 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
           final repartidorResponse = await supabase
               .from('usuarios')
               .select('nombre')
-              .eq('id', user.id)
+              .eq('auth_id', user.id)  // USAR auth_id en lugar de id
               .single();
           repartidorNombre = repartidorResponse['nombre'] as String?;
         } catch (e) {
-          // Si no encuentra el usuario por ID, intentar por email
+          // Si no encuentra el usuario por auth_id, intentar por email
           if (user.email != null) {
             try {
               final repartidorResponse = await supabase
