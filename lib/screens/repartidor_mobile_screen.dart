@@ -53,9 +53,10 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      // Recargar órdenes cuando la app vuelve a estar activa
-      print('🔄 App resumida - Recargando órdenes...');
+      // Recargar órdenes y notificaciones cuando la app vuelve a estar activa
+      print('🔄 App resumida - Recargando órdenes y notificaciones...');
       _cargarOrdenes();
+      _cargarMensajesNoLeidos();
     }
   }
 
@@ -221,6 +222,8 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
       final user = supabase.auth.currentUser;
       if (user == null) return;
 
+      print('🔍 Cargando mensajes no leídos para repartidor...');
+
       // Contar mensajes no leídos donde el repartidor no es el remitente
       final response = await supabase
           .from('mensajes_soporte')
@@ -228,13 +231,17 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
           .eq('leido', false)
           .neq('remitente_auth_id', user.id);
 
-      if (mounted) {
+      final nuevoContador = response.length;
+      print('📊 Mensajes no leídos encontrados: $nuevoContador');
+
+      if (mounted && _mensajesNoLeidos != nuevoContador) {
         setState(() {
-          _mensajesNoLeidos = response.length;
+          _mensajesNoLeidos = nuevoContador;
         });
+        print('✅ Contador actualizado: $_mensajesNoLeidos');
       }
     } catch (e) {
-      print('Error al cargar mensajes no leídos: $e');
+      print('❌ Error al cargar mensajes no leídos: $e');
     }
   }
 
@@ -246,8 +253,10 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
           schema: 'public',
           table: 'mensajes_soporte',
           callback: (payload) {
+            print('🔔 Nuevo mensaje recibido en tiempo real');
             final user = supabase.auth.currentUser;
             if (user != null && payload.newRecord['remitente_auth_id'] != user.id) {
+              print('📱 Actualizando notificaciones para repartidor');
               _cargarMensajesNoLeidos();
             }
           },
@@ -257,6 +266,16 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
           schema: 'public',
           table: 'mensajes_soporte',
           callback: (payload) {
+            print('🔄 Mensaje actualizado en tiempo real');
+            _cargarMensajesNoLeidos();
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'conversaciones_soporte',
+          callback: (payload) {
+            print('💬 Conversación actualizada en tiempo real');
             _cargarMensajesNoLeidos();
           },
         )
