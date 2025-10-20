@@ -334,8 +334,8 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFFF5F5F5),
+    return SharedLayout(
+      currentScreen: 'crear_orden',
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -1579,6 +1579,8 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
           ),
         ),
       ],
+        ),
+      ),
     );
   }
 }
