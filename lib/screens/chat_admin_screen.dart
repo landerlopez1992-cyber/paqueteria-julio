@@ -168,6 +168,149 @@ class _ChatAdminScreenState extends State<ChatAdminScreen> {
     }
   }
 
+  Future<void> _mostrarConfirmacionEliminar(Map<String, dynamic> conversacion) async {
+    final repartidor = conversacion['usuarios'];
+    final nombreRepartidor = repartidor['nombre'] ?? 'Repartidor';
+    
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.warning, color: Colors.red, size: 28),
+            const SizedBox(width: 12),
+            const Text(
+              'Eliminar Conversación',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textoPrincipal,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '¿Estás seguro de que quieres eliminar permanentemente la conversación con $nombreRepartidor?',
+              style: const TextStyle(
+                fontSize: 16,
+                color: AppColors.textoPrincipal,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.withOpacity(0.3)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info, color: Colors.red, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Esta acción no se puede deshacer. Se eliminarán todos los mensajes de esta conversación.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                color: AppColors.textoSecundario,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      await _eliminarConversacion(conversacion['id']);
+    }
+  }
+
+  Future<void> _eliminarConversacion(String conversacionId) async {
+    try {
+      print('🗑️ Eliminando conversación: $conversacionId');
+      
+      // Eliminar todos los mensajes de la conversación primero
+      await supabase
+          .from('mensajes_soporte')
+          .delete()
+          .eq('conversacion_id', conversacionId);
+
+      print('✅ Mensajes eliminados');
+
+      // Eliminar la conversación
+      await supabase
+          .from('conversaciones_soporte')
+          .delete()
+          .eq('id', conversacionId);
+
+      print('✅ Conversación eliminada');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Conversación eliminada permanentemente'),
+            backgroundColor: AppColors.success,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        // Recargar la lista de conversaciones
+        await _cargarConversaciones();
+      }
+    } catch (e) {
+      print('❌ Error al eliminar conversación: $e');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error al eliminar conversación: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _mostrarModalNuevaConversacion() async {
     try {
       // Obtener todos los repartidores
@@ -647,6 +790,8 @@ class _ChatAdminScreenState extends State<ChatAdminScreen> {
                       _cerrarConversacion(conversacion['id']);
                     } else if (value == 'abrir') {
                       _abrirConversacion(conversacion['id']);
+                    } else if (value == 'eliminar') {
+                      _mostrarConfirmacionEliminar(conversacion);
                     }
                   },
                   itemBuilder: (context) => [
@@ -672,6 +817,16 @@ class _ChatAdminScreenState extends State<ChatAdminScreen> {
                           ],
                         ),
                       ),
+                    const PopupMenuItem(
+                      value: 'eliminar',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_forever, size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Eliminar conversación'),
+                        ],
+                      ),
+                    ),
                   ],
                   child: const Icon(
                     Icons.more_vert,
