@@ -335,6 +335,10 @@ class OrdenPrintModal extends StatelessWidget {
     return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year} ${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}';
   }
 
+  String _formatFechaCorta(DateTime fecha) {
+    return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+  }
+
   Future<void> _imprimir(BuildContext context) async {
     try {
       // Generar el PDF
@@ -376,116 +380,212 @@ class OrdenPrintModal extends StatelessWidget {
     // Generar el código QR como imagen
     final qrImageBytes = await _generarQRBytes();
 
+    // Formato 4x6 pulgadas para etiquetas térmicas (estándar de paquetería)
+    // 288 puntos x 432 puntos (72 DPI)
+    final labelFormat = PdfPageFormat(
+      4 * PdfPageFormat.inch,  // 4 pulgadas de ancho
+      6 * PdfPageFormat.inch,  // 6 pulgadas de alto
+      marginAll: 0.15 * PdfPageFormat.inch, // Márgenes pequeños
+    );
+
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(40),
+        pageFormat: labelFormat,
         build: (pw.Context context) {
           return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
-              // Header con logo y QR
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
+              // Header compacto
+              pw.Text(
+                'J ALVAREZ EXPRESS',
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 2),
+              pw.Text(
+                '#${orden.numeroOrden}',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              
+              pw.SizedBox(height: 8),
+              
+              // CÓDIGO QR GRANDE - Prioritario
+              if (qrImageBytes != null)
+                pw.Container(
+                  width: 180,  // QR más grande para fácil escaneo
+                  height: 180,
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(width: 2),
+                  ),
+                  child: pw.Image(pw.MemoryImage(qrImageBytes)),
+                ),
+              
+              pw.SizedBox(height: 6),
+              pw.Text(
+                'ESCANEAR PARA VERIFICAR',
+                style: const pw.TextStyle(fontSize: 8),
+              ),
+              
+              pw.SizedBox(height: 10),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 6),
+              
+              // Destinatario - INFORMACIÓN MÁS IMPORTANTE
+              pw.Container(
+                width: double.infinity,
+                padding: const pw.EdgeInsets.all(6),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey300,
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'PARA:',
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                    pw.SizedBox(height: 2),
+                    pw.Text(
+                      orden.receptor.toUpperCase(),
+                      style: pw.TextStyle(
+                        fontSize: 11,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                    ),
+                    if (orden.telefonoDestinatario != null) ...[
+                      pw.SizedBox(height: 2),
                       pw.Text(
-                        'Sistema de Paquetería',
+                        'Tel: ${orden.telefonoDestinatario}',
+                        style: const pw.TextStyle(fontSize: 9),
+                      ),
+                    ],
+                    pw.SizedBox(height: 2),
+                    pw.Text(
+                      orden.direccionDestino,
+                      style: const pw.TextStyle(fontSize: 9),
+                      maxLines: 2,
+                    ),
+                    if (orden.ciudadDestino != null || orden.provinciaDestino != null) ...[
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        '${orden.ciudadDestino ?? ''} ${orden.provinciaDestino ?? ''}'.trim(),
                         style: pw.TextStyle(
-                          fontSize: 24,
+                          fontSize: 9,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
-                      pw.SizedBox(height: 8),
+                    ],
+                  ],
+                ),
+              ),
+              
+              pw.SizedBox(height: 6),
+              
+              // Emisor - Compacto
+              pw.Container(
+                width: double.infinity,
+                padding: const pw.EdgeInsets.all(4),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'DE: ${orden.emisor}',
+                      style: const pw.TextStyle(fontSize: 8),
+                    ),
+                  ],
+                ),
+              ),
+              
+              pw.SizedBox(height: 6),
+              
+              // Detalles del paquete - Compacto
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                children: [
+                  if (orden.cantidadBultos != null)
+                    pw.Column(
+                      children: [
+                        pw.Text(
+                          'BULTOS',
+                          style: const pw.TextStyle(fontSize: 7),
+                        ),
+                        pw.Text(
+                          '${orden.cantidadBultos}',
+                          style: pw.TextStyle(
+                            fontSize: 14,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  if (orden.peso != null)
+                    pw.Column(
+                      children: [
+                        pw.Text(
+                          'PESO',
+                          style: const pw.TextStyle(fontSize: 7),
+                        ),
+                        pw.Text(
+                          '${orden.peso} lb',
+                          style: pw.TextStyle(
+                            fontSize: 14,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  pw.Column(
+                    children: [
                       pw.Text(
-                        'Orden #${orden.numeroOrden}',
-                        style: const pw.TextStyle(fontSize: 16),
+                        'ESTADO',
+                        style: const pw.TextStyle(fontSize: 7),
                       ),
-                      pw.SizedBox(height: 4),
                       pw.Text(
-                        'Fecha: ${_formatFecha(orden.fechaCreacion)}',
-                        style: const pw.TextStyle(fontSize: 14),
+                        orden.estado,
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
-                  // Código QR
-                  if (qrImageBytes != null)
-                    pw.Container(
-                      width: 120,
-                      height: 120,
-                      decoration: pw.BoxDecoration(
-                        border: pw.Border.all(width: 3),
-                      ),
-                      child: pw.Image(pw.MemoryImage(qrImageBytes)),
-                    ),
                 ],
               ),
               
-              pw.SizedBox(height: 24),
-              pw.Divider(thickness: 2),
-              pw.SizedBox(height: 24),
+              pw.SizedBox(height: 6),
               
-              // Emisor
-              _buildPDFSeccion('Emisor', [
-                _buildPDFInfoRow('Nombre:', orden.emisor),
-              ]),
-              
-              pw.SizedBox(height: 20),
-              
-              // Destinatario
-              _buildPDFSeccion('Destinatario', [
-                _buildPDFInfoRow('Nombre:', orden.receptor),
-                if (orden.telefonoDestinatario != null)
-                  _buildPDFInfoRow('Teléfono:', orden.telefonoDestinatario!),
-                _buildPDFInfoRow('Dirección:', orden.direccionDestino),
-                if (orden.ciudadDestino != null)
-                  _buildPDFInfoRow('Ciudad:', orden.ciudadDestino!),
-                if (orden.provinciaDestino != null)
-                  _buildPDFInfoRow('Provincia:', orden.provinciaDestino!),
-              ]),
-              
-              pw.SizedBox(height: 20),
-              
-              // Detalles del paquete
-              _buildPDFSeccion('Detalles del Paquete', [
-                _buildPDFInfoRow('Descripción:', orden.descripcion),
-                if (orden.cantidadBultos != null)
-                  _buildPDFInfoRow('Cantidad de bultos:', '${orden.cantidadBultos}'),
-                if (orden.peso != null)
-                  _buildPDFInfoRow('Peso:', '${orden.peso} lb'),
-                if (orden.notas != null && orden.notas!.isNotEmpty)
-                  _buildPDFInfoRow('Notas:', orden.notas!),
-              ]),
-              
-              pw.SizedBox(height: 20),
-              
-              // Información de entrega
-              _buildPDFSeccion('Información de Entrega', [
-                _buildPDFInfoRow('Estado:', orden.estado),
-                if (orden.fechaEntrega != null)
-                  _buildPDFInfoRow('Fecha de entrega:', _formatFecha(orden.fechaEntrega!)),
-              ]),
+              // Fecha de entrega si existe
+              if (orden.fechaEntrega != null) ...[
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(width: 1),
+                  ),
+                  child: pw.Text(
+                    'ENTREGAR: ${_formatFechaCorta(orden.fechaEntrega!)}',
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
               
               pw.Spacer(),
               
-              // Pie de página
-              pw.Column(
-                children: [
-                  pw.Divider(),
-                  pw.SizedBox(height: 12),
-                  pw.Text(
-                    'Gracias por confiar en nosotros',
-                    style: const pw.TextStyle(fontSize: 14),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text(
-                    'Impreso: ${_formatFecha(DateTime.now())}',
-                    style: const pw.TextStyle(fontSize: 12),
-                  ),
-                ],
+              // Pie de página minimalista
+              pw.Text(
+                'Impreso: ${_formatFechaCorta(DateTime.now())}',
+                style: const pw.TextStyle(fontSize: 6),
               ),
             ],
           );
