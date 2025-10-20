@@ -112,15 +112,21 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
   }
 
   Future<void> _cargarMensajes() async {
-    if (_conversacionId == null) return;
+    if (_conversacionId == null) {
+      print('⚠️ No hay conversación para cargar mensajes');
+      return;
+    }
 
     try {
+      print('📥 Cargando mensajes para conversación: $_conversacionId');
       final mensajes = await supabase
           .from('mensajes_soporte')
           .select('*')
           .eq('conversacion_id', _conversacionId!)
           .order('created_at', ascending: true);
 
+      print('📨 Mensajes cargados: ${mensajes.length}');
+      
       if (mounted) {
         setState(() {
           _mensajes = List<Map<String, dynamic>>.from(mensajes);
@@ -130,7 +136,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
       // Marcar mensajes como leídos
       await _marcarComoLeidos();
     } catch (e) {
-      print('Error al cargar mensajes: $e');
+      print('❌ Error al cargar mensajes: $e');
     }
   }
 
@@ -228,6 +234,9 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
         });
         
         print('✅ Mensaje enviado exitosamente');
+        
+        // Cargar mensajes después de crear la conversación
+        await _cargarMensajes();
         _scrollToBottom();
         
         // Suscribirse a mensajes ahora que tenemos conversación
