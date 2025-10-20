@@ -322,7 +322,7 @@ class _ChatAdminScreenState extends State<ChatAdminScreen> {
         await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatConversacionScreen(
+            builder: (context) => ChatAdminConversacionScreen(
               conversacionId: conversacionId,
               nombreRepartidor: repartidor['nombre'],
               fotoPerfilUrl: repartidor['foto_perfil'],
@@ -748,11 +748,15 @@ class _ChatAdminConversacionScreenState
 
   Future<void> _cargarMensajes() async {
     try {
+      print('📥 Cargando mensajes admin para conversación: ${widget.conversacionId}');
+      
       final mensajes = await supabase
           .from('mensajes_soporte')
-          .select('*, usuarios!remitente_id(nombre, rol)')
+          .select('*')
           .eq('conversacion_id', widget.conversacionId)
           .order('created_at', ascending: true);
+
+      print('📨 Mensajes cargados (admin): ${mensajes.length}');
 
       if (mounted) {
         setState(() {
@@ -767,7 +771,7 @@ class _ChatAdminConversacionScreenState
         _scrollToBottom();
       });
     } catch (e) {
-      print('Error al cargar mensajes: $e');
+      print('❌ Error al cargar mensajes: $e');
       if (mounted) {
         setState(() {
           _cargando = false;
@@ -777,6 +781,8 @@ class _ChatAdminConversacionScreenState
   }
 
   void _suscribirseAMensajes() {
+    print('🔔 Suscribiéndose a mensajes (admin) para conversación: ${widget.conversacionId}');
+    
     _channel = supabase
         .channel('mensajes_soporte_admin_${widget.conversacionId}')
         .onPostgresChanges(
@@ -789,26 +795,33 @@ class _ChatAdminConversacionScreenState
             value: widget.conversacionId,
           ),
           callback: (payload) async {
+            print('🔔 Nuevo mensaje recibido por realtime (admin)!');
+            
             final nuevoMensaje = await supabase
                 .from('mensajes_soporte')
-                .select('*, usuarios!remitente_id(nombre, rol)')
+                .select('*')
                 .eq('id', payload.newRecord['id'])
                 .single();
+
+            print('📨 Mensaje completo (admin): ${nuevoMensaje['mensaje']}');
 
             if (mounted) {
               setState(() {
                 _mensajes.add(nuevoMensaje);
               });
+              print('✅ Mensaje agregado a la UI (admin), total: ${_mensajes.length}');
               _scrollToBottom();
 
               final user = supabase.auth.currentUser;
-              if (user != null && nuevoMensaje['remitente_id'] != user.id) {
+              if (user != null && nuevoMensaje['remitente_auth_id'] != user.id) {
                 _marcarComoLeidos();
               }
             }
           },
         )
         .subscribe();
+    
+    print('✅ Suscripción a realtime completada (admin)');
   }
 
   Future<void> _marcarComoLeidos() async {
@@ -820,7 +833,7 @@ class _ChatAdminConversacionScreenState
           .from('mensajes_soporte')
           .update({'leido': true})
           .eq('conversacion_id', widget.conversacionId)
-          .neq('remitente_id', user.id)
+          .neq('remitente_auth_id', user.id)
           .eq('leido', false);
     } catch (e) {
       print('Error al marcar mensajes como leídos: $e');
@@ -837,21 +850,26 @@ class _ChatAdminConversacionScreenState
     _mensajeController.clear();
 
     try {
+      print('📤 Enviando mensaje (admin)...');
       await supabase.from('mensajes_soporte').insert({
         'conversacion_id': widget.conversacionId,
-        'remitente_id': user.id,
+        'remitente_auth_id': user.id,
         'mensaje': mensaje,
         'leido': false,
       });
 
+      print('✅ Mensaje enviado exitosamente (admin)');
+      
+      // Recargar mensajes para asegurar que se muestren
+      await _cargarMensajes();
       _scrollToBottom();
     } catch (e) {
-      print('Error al enviar mensaje: $e');
+      print('❌ Error al enviar mensaje: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ Error al enviar mensaje. Verifica que las tablas de chat existan en Supabase.'),
+        SnackBar(
+          content: Text('⚠️ Error: ${e.toString()}'),
           backgroundColor: Colors.orange,
-          duration: Duration(seconds: 4),
+          duration: const Duration(seconds: 4),
         ),
       );
     }
@@ -932,9 +950,8 @@ class _ChatAdminConversacionScreenState
                           itemBuilder: (context, index) {
                             final mensaje = _mensajes[index];
                             final user = supabase.auth.currentUser;
-                            final esMio = mensaje['remitente_id'] == user?.id;
-                            final nombreRemitente =
-                                mensaje['usuarios']?['nombre'] ?? 'Usuario';
+                            final esMio = mensaje['remitente_auth_id'] == user?.id;
+                            final nombreRemitente = esMio ? 'Administrador' : widget.nombreRepartidor;
                             final rolRemitente =
                                 mensaje['usuarios']?['rol'] ?? '';
                             final esAdmin = rolRemitente == 'ADMINISTRADOR';
