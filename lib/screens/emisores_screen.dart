@@ -257,10 +257,12 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
 
     try {
       // Eliminar todos los emisores seleccionados
-      await supabase
-          .from('emisores')
-          .delete()
-          .in_('id', _selectedEmisores.toList());
+      for (final id in _selectedEmisores) {
+        await supabase
+            .from('emisores')
+            .delete()
+            .eq('id', id);
+      }
 
       _showSuccessDialog('${_selectedEmisores.length} emisor(es) eliminado(s) exitosamente');
       
