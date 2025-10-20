@@ -5,6 +5,7 @@ import 'crear_orden_screen.dart';
 import 'editar_orden_screen.dart';
 import 'ver_orden_screen.dart';
 import '../widgets/shared_layout.dart';
+import '../widgets/orden_print_modal.dart';
 
 class OrdenesTableScreen extends StatefulWidget {
   const OrdenesTableScreen({super.key});
@@ -474,6 +475,13 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
         content: Text(mensaje),
         backgroundColor: const Color(0xFF4CAF50),
       ),
+    );
+  }
+
+  void _mostrarModalImpresion(Orden orden) {
+    showDialog(
+      context: context,
+      builder: (context) => OrdenPrintModal(orden: orden),
     );
   }
 
@@ -1410,6 +1418,17 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
           tooltip: 'Eliminar orden',
+        ),
+        IconButton(
+          onPressed: () {
+            // Mostrar modal de impresión
+            _mostrarModalImpresion(orden);
+          },
+          icon: const Icon(Icons.print, size: 14),
+          color: const Color(0xFF4CAF50),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+          tooltip: 'Imprimir comprobante',
         ),
       ],
     );
