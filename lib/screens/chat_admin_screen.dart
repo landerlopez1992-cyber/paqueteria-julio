@@ -887,48 +887,64 @@ class _ChatAdminConversacionScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.fondoGeneral,
-      appBar: AppBar(
-        backgroundColor: AppColors.header,
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.accent,
-              backgroundImage: widget.fotoPerfilUrl != null &&
-                      widget.fotoPerfilUrl!.isNotEmpty
-                  ? NetworkImage(widget.fotoPerfilUrl!)
-                  : null,
-              child: widget.fotoPerfilUrl == null ||
-                      widget.fotoPerfilUrl!.isEmpty
-                  ? Text(
-                      widget.nombreRepartidor[0].toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
+    return SharedLayout(
+      currentScreen: 'chat_soporte',
+      child: Column(
+        children: [
+          // Header personalizado para el chat
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: AppColors.header,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Text(
-              widget.nombreRepartidor,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                const SizedBox(width: 12),
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: AppColors.accent,
+                  backgroundImage: widget.fotoPerfilUrl != null &&
+                          widget.fotoPerfilUrl!.isNotEmpty
+                      ? NetworkImage(widget.fotoPerfilUrl!)
+                      : null,
+                  child: widget.fotoPerfilUrl == null ||
+                          widget.fotoPerfilUrl!.isEmpty
+                      ? Text(
+                          widget.nombreRepartidor[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  widget.nombreRepartidor,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: _cargando
+          ),
+          // Contenido del chat
+          Expanded(
+            child: _cargando
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
@@ -1032,6 +1048,9 @@ class _ChatAdminConversacionScreenState
                 ),
               ],
             ),
+          ),
+        ],
+      ),
     );
   }
 

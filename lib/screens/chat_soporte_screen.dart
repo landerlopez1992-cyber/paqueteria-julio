@@ -225,22 +225,36 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
     print('📝 Mensaje a enviar: $mensaje');
     print('🔑 ConversacionId: $_conversacionId');
     
-    // Si no hay conversación, intentar crearla
+    // Si no hay conversación, buscar o crear una
     if (_conversacionId == null) {
-      print('❌ No hay conversación, intentando crear...');
+      print('❌ No hay conversación, buscando o creando...');
       _mensajeController.clear();
       
       try {
-        // Intentar crear conversación
-        final nuevaConversacion = await supabase
+        // Primero buscar si ya existe una conversación
+        final conversacionesExistentes = await supabase
             .from('conversaciones_soporte')
-            .insert({
-          'repartidor_auth_id': user.id,
-          'estado': 'ABIERTA',
-        }).select('id').single();
+            .select('id')
+            .eq('repartidor_auth_id', user.id)
+            .eq('estado', 'ABIERTA')
+            .limit(1);
 
-        _conversacionId = nuevaConversacion['id'];
-        print('✅ Conversación creada: $_conversacionId');
+        if (conversacionesExistentes.isNotEmpty) {
+          // Usar conversación existente
+          _conversacionId = conversacionesExistentes[0]['id'];
+          print('✅ Conversación existente encontrada: $_conversacionId');
+        } else {
+          // Crear nueva conversación solo si no existe
+          final nuevaConversacion = await supabase
+              .from('conversaciones_soporte')
+              .insert({
+            'repartidor_auth_id': user.id,
+            'estado': 'ABIERTA',
+          }).select('id').single();
+
+          _conversacionId = nuevaConversacion['id'];
+          print('✅ Nueva conversación creada: $_conversacionId');
+        }
         
         // Reintentar enviar el mensaje
         await supabase.from('mensajes_soporte').insert({
