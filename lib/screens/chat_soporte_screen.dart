@@ -38,11 +38,13 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
     if (user == null) return;
 
     try {
+      print('🔍 Inicializando chat para usuario: ${user.id}');
+      
       // Obtener nombre del repartidor
       final userData = await supabase
           .from('usuarios')
           .select('nombre')
-          .eq('id', user.id)
+          .eq('auth_id', user.id)  // Usar auth_id en lugar de id
           .single();
       
       if (mounted) {
@@ -50,8 +52,11 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
           _nombreRepartidor = userData['nombre'] ?? 'Repartidor';
         });
       }
+      
+      print('👤 Nombre del repartidor: $_nombreRepartidor');
 
       // Buscar conversación existente o crear una nueva
+      print('🔍 Buscando conversación existente...');
       final conversaciones = await supabase
           .from('conversaciones_soporte')
           .select('id')
@@ -59,8 +64,11 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
           .eq('estado', 'ABIERTA')
           .limit(1);
 
+      print('📊 Conversaciones encontradas: ${conversaciones.length}');
+
       if (conversaciones.isEmpty) {
         // Crear nueva conversación
+        print('🆕 Creando nueva conversación...');
         final nuevaConversacion = await supabase
             .from('conversaciones_soporte')
             .insert({
@@ -69,8 +77,10 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
         }).select('id').single();
 
         _conversacionId = nuevaConversacion['id'];
+        print('✅ Nueva conversación creada: $_conversacionId');
       } else {
         _conversacionId = conversaciones[0]['id'];
+        print('✅ Conversación existente encontrada: $_conversacionId');
       }
 
       // Cargar mensajes existentes
@@ -90,7 +100,7 @@ class _ChatSoporteScreenState extends State<ChatSoporteScreen> {
         _scrollToBottom();
       });
     } catch (e) {
-      print('⚠️ No hay conversación previa (esto es normal la primera vez): $e');
+      print('❌ Error al inicializar chat: $e');
       
       // Esto es normal si es la primera vez que se usa el chat
       // No mostrar error al usuario, simplemente preparar para crear conversación
