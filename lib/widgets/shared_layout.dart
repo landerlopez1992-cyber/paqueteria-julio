@@ -505,10 +505,7 @@ class _SharedLayoutState extends State<SharedLayout> {
         );
         break;
       case 'crear_orden':
-        destinationScreen = SharedLayout(
-          currentScreen: 'crear_orden',
-          child: CrearOrdenScreen(),
-        );
+        destinationScreen = const CrearOrdenScreen();
         break;
       case 'chat_soporte':
         destinationScreen = const ChatAdminScreen();
