@@ -44,6 +44,8 @@ dependencies:
   # URL launcher for phone calls
   url_launcher: ^6.2.5
   qr_flutter: ^4.1.0
+  printing: ^5.14.2
+  pdf: ^3.11.3
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import '../models/orden.dart';
 import '../config/app_colors.dart';
 
@@ -331,21 +334,243 @@ class OrdenPrintModal extends StatelessWidget {
     return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year} ${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}';
   }
 
-  void _imprimir(BuildContext context) {
-    // Implementar lógica de impresión
-    // Por ahora, simplemente llamar a window.print() en web
-    Navigator.of(context).pop();
+  Future<void> _imprimir(BuildContext context) async {
+    try {
+      // Generar el PDF
+      final pdf = await _generarPDF();
+      
+      // Abrir diálogo de impresión del sistema
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+        name: 'Orden_${orden.numeroOrden}.pdf',
+      );
+      
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Documento listo para imprimir'),
+            backgroundColor: Color(0xFF4CAF50),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al preparar impresión: $e'),
+            backgroundColor: const Color(0xFFDC2626),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<pw.Document> _generarPDF() async {
+    final pdf = pw.Document();
     
-    // Mostrar mensaje de confirmación
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Preparando impresión...'),
-        backgroundColor: Color(0xFF4CAF50),
-        duration: Duration(seconds: 2),
+    // Generar el código QR como imagen
+    final qrImageBytes = await _generarQRBytes();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Header con logo y QR
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'Sistema de Paquetería',
+                        style: pw.TextStyle(
+                          fontSize: 24,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
+                      pw.Text(
+                        'Orden #${orden.numeroOrden}',
+                        style: const pw.TextStyle(fontSize: 16),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'Fecha: ${_formatFecha(orden.fechaCreacion)}',
+                        style: const pw.TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  // Código QR
+                  if (qrImageBytes != null)
+                    pw.Container(
+                      width: 120,
+                      height: 120,
+                      decoration: pw.BoxDecoration(
+                        border: pw.Border.all(width: 3),
+                      ),
+                      child: pw.Image(pw.MemoryImage(qrImageBytes)),
+                    ),
+                ],
+              ),
+              
+              pw.SizedBox(height: 24),
+              pw.Divider(thickness: 2),
+              pw.SizedBox(height: 24),
+              
+              // Emisor
+              _buildPDFSeccion('Emisor', [
+                _buildPDFInfoRow('Nombre:', orden.emisor),
+              ]),
+              
+              pw.SizedBox(height: 20),
+              
+              // Destinatario
+              _buildPDFSeccion('Destinatario', [
+                _buildPDFInfoRow('Nombre:', orden.receptor),
+                if (orden.telefonoDestinatario != null)
+                  _buildPDFInfoRow('Teléfono:', orden.telefonoDestinatario!),
+                _buildPDFInfoRow('Dirección:', orden.direccionDestino),
+                if (orden.ciudadDestino != null)
+                  _buildPDFInfoRow('Ciudad:', orden.ciudadDestino!),
+                if (orden.provinciaDestino != null)
+                  _buildPDFInfoRow('Provincia:', orden.provinciaDestino!),
+              ]),
+              
+              pw.SizedBox(height: 20),
+              
+              // Detalles del paquete
+              _buildPDFSeccion('Detalles del Paquete', [
+                _buildPDFInfoRow('Descripción:', orden.descripcion),
+                if (orden.cantidadBultos != null)
+                  _buildPDFInfoRow('Cantidad de bultos:', '${orden.cantidadBultos}'),
+                if (orden.peso != null)
+                  _buildPDFInfoRow('Peso:', '${orden.peso} lb'),
+                if (orden.notas != null && orden.notas!.isNotEmpty)
+                  _buildPDFInfoRow('Notas:', orden.notas!),
+              ]),
+              
+              pw.SizedBox(height: 20),
+              
+              // Información de entrega
+              _buildPDFSeccion('Información de Entrega', [
+                _buildPDFInfoRow('Estado:', orden.estado),
+                if (orden.fechaEntrega != null)
+                  _buildPDFInfoRow('Fecha de entrega:', _formatFecha(orden.fechaEntrega!)),
+              ]),
+              
+              pw.Spacer(),
+              
+              // Pie de página
+              pw.Column(
+                children: [
+                  pw.Divider(),
+                  pw.SizedBox(height: 12),
+                  pw.Text(
+                    'Gracias por confiar en nosotros',
+                    style: const pw.TextStyle(fontSize: 14),
+                  ),
+                  pw.SizedBox(height: 8),
+                  pw.Text(
+                    'Impreso: ${_formatFecha(DateTime.now())}',
+                    style: const pw.TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
-    
-    // TODO: Implementar impresión real usando printing package si es necesario
+
+    return pdf;
+  }
+
+  Future<List<int>?> _generarQRBytes() async {
+    try {
+      // Generar QR como imagen para PDF
+      final qrValidationResult = QrValidator.validate(
+        data: orden.id,
+        version: QrVersions.auto,
+        errorCorrectionLevel: QrErrorCorrectLevel.L,
+      );
+      
+      if (qrValidationResult.status == QrValidationStatus.valid) {
+        final qrCode = qrValidationResult.qrCode;
+        final painter = QrPainter.withQr(
+          qr: qrCode!,
+          color: const Color(0xFF000000),
+          emptyColor: const Color(0xFFFFFFFF),
+          gapless: true,
+        );
+        
+        final image = await painter.toImageData(200);
+        return image?.buffer.asUint8List();
+      }
+    } catch (e) {
+      print('Error generando QR: $e');
+    }
+    return null;
+  }
+
+  pw.Widget _buildPDFSeccion(String titulo, List<pw.Widget> contenido) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          color: PdfColors.grey300,
+          child: pw.Text(
+            titulo,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ),
+        pw.SizedBox(height: 8),
+        pw.Container(
+          padding: const pw.EdgeInsets.all(12),
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(color: PdfColors.grey400),
+          ),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: contenido,
+          ),
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildPDFInfoRow(String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 4),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.SizedBox(
+            width: 140,
+            child: pw.Text(
+              label,
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            ),
+          ),
+          pw.Expanded(
+            child: pw.Text(value),
+          ),
+        ],
+      ),
+    );
   }
 }
 
