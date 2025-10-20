@@ -1579,8 +1579,6 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
           ),
         ),
       ],
-        ),
-      ),
     );
   }
 }
