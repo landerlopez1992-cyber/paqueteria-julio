@@ -31,28 +31,46 @@ class _ChatAdminScreenState extends State<ChatAdminScreen> {
 
   Future<void> _cargarConversaciones() async {
     try {
+      print('🔍 Cargando conversaciones...');
+      
+      // Primero obtener todas las conversaciones
       final conversaciones = await supabase
           .from('conversaciones_soporte')
-          .select('''
-            *,
-            usuarios!conversaciones_soporte_repartidor_id_fkey(id, nombre, email, foto_perfil),
-            mensajes_soporte(id, mensaje, created_at, leido, remitente_id)
-          ''')
+          .select('*')
           .order('ultimo_mensaje_fecha', ascending: false);
 
-      // Contar mensajes no leídos por conversación
+      print('📊 Conversaciones encontradas: ${conversaciones.length}');
+
+      // Para cada conversación, obtener el repartidor y mensajes
       for (var conv in conversaciones) {
-        final mensajes = conv['mensajes_soporte'] as List;
+        // Obtener datos del repartidor usando auth_id
+        final repartidorData = await supabase
+            .from('usuarios')
+            .select('id, nombre, email, foto_perfil')
+            .eq('auth_id', conv['repartidor_auth_id'])
+            .single();
+        
+        conv['usuarios'] = repartidorData;
+
+        // Obtener mensajes de esta conversación
+        final mensajes = await supabase
+            .from('mensajes_soporte')
+            .select('id, mensaje, created_at, leido, remitente_auth_id')
+            .eq('conversacion_id', conv['id'])
+            .order('created_at', ascending: true);
+
         final adminId = supabase.auth.currentUser?.id;
         
         conv['mensajes_no_leidos'] = mensajes
-            .where((m) => !m['leido'] && m['remitente_id'] != adminId)
+            .where((m) => !m['leido'] && m['remitente_auth_id'] != adminId)
             .length;
         
         conv['ultimo_mensaje'] = mensajes.isNotEmpty
             ? mensajes.last['mensaje']
             : 'Sin mensajes';
       }
+
+      print('✅ Conversaciones cargadas con éxito');
 
       if (mounted) {
         setState(() {
@@ -61,7 +79,7 @@ class _ChatAdminScreenState extends State<ChatAdminScreen> {
         });
       }
     } catch (e) {
-      print('Error al cargar conversaciones: $e');
+      print('❌ Error al cargar conversaciones: $e');
       
       // FIX TEMPORAL: Si las tablas no existen, mostrar estado vacío
       if (mounted) {
@@ -150,15 +168,207 @@ class _ChatAdminScreenState extends State<ChatAdminScreen> {
     }
   }
 
+  Future<void> _mostrarModalNuevaConversacion() async {
+    try {
+      // Obtener todos los repartidores
+      final repartidores = await supabase
+          .from('usuarios')
+          .select('id, auth_id, nombre, email, foto_perfil')
+          .eq('rol', 'REPARTIDOR')
+          .order('nombre', ascending: true);
+
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            width: 500,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.chat_bubble, color: AppColors.primary, size: 28),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Nueva Conversación',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textoPrincipal,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Selecciona un repartidor para iniciar una conversación',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textoSecundario,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 400),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: repartidores.length,
+                    itemBuilder: (context, index) {
+                      final repartidor = repartidores[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.primary,
+                          backgroundImage: repartidor['foto_perfil'] != null &&
+                                  repartidor['foto_perfil'].isNotEmpty
+                              ? NetworkImage(repartidor['foto_perfil'])
+                              : null,
+                          child: repartidor['foto_perfil'] == null ||
+                                  repartidor['foto_perfil'].isEmpty
+                              ? Text(
+                                  repartidor['nombre'][0].toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : null,
+                        ),
+                        title: Text(
+                          repartidor['nombre'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textoPrincipal,
+                          ),
+                        ),
+                        subtitle: Text(
+                          repartidor['email'],
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textoSecundario,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          await _crearOAbrirConversacion(repartidor);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error al mostrar modal: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar repartidores: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _crearOAbrirConversacion(Map<String, dynamic> repartidor) async {
+    try {
+      print('🔍 Buscando conversación con repartidor: ${repartidor['nombre']}');
+      
+      // Buscar si ya existe una conversación con este repartidor
+      final conversacionesExistentes = await supabase
+          .from('conversaciones_soporte')
+          .select('id')
+          .eq('repartidor_auth_id', repartidor['auth_id'])
+          .eq('estado', 'ABIERTA')
+          .limit(1);
+
+      String conversacionId;
+
+      if (conversacionesExistentes.isEmpty) {
+        // Crear nueva conversación
+        print('🆕 Creando nueva conversación...');
+        final nuevaConversacion = await supabase
+            .from('conversaciones_soporte')
+            .insert({
+          'repartidor_auth_id': repartidor['auth_id'],
+          'estado': 'ABIERTA',
+        }).select('id').single();
+
+        conversacionId = nuevaConversacion['id'];
+        print('✅ Nueva conversación creada: $conversacionId');
+      } else {
+        conversacionId = conversacionesExistentes[0]['id'];
+        print('✅ Conversación existente encontrada: $conversacionId');
+      }
+
+      // Abrir la conversación
+      if (mounted) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatConversacionScreen(
+              conversacionId: conversacionId,
+              nombreRepartidor: repartidor['nombre'],
+              fotoPerfilUrl: repartidor['foto_perfil'],
+            ),
+          ),
+        );
+
+        // Recargar conversaciones al volver
+        _cargarConversaciones();
+      }
+    } catch (e) {
+      print('❌ Error al crear/abrir conversación: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SharedLayout(
       currentScreen: 'chat_soporte',
-      child: _cargando
-          ? const Center(child: CircularProgressIndicator())
-          : _conversaciones.isEmpty
-              ? _buildEmptyState()
-              : _buildConversacionesList(),
+      child: Stack(
+        children: [
+          _cargando
+              ? const Center(child: CircularProgressIndicator())
+              : _conversaciones.isEmpty
+                  ? _buildEmptyState()
+                  : _buildConversacionesList(),
+          // Botón flotante "+" para iniciar nueva conversación
+          Positioned(
+            right: 24,
+            bottom: 24,
+            child: FloatingActionButton(
+              onPressed: _mostrarModalNuevaConversacion,
+              backgroundColor: AppColors.primary,
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
