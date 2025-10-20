@@ -27,11 +27,21 @@ class _SharedLayoutState extends State<SharedLayout> {
   String? _userName;
   String? _userEmail;
   String? _fotoPerfilUrl;
+  int _mensajesNoLeidos = 0;
+  RealtimeChannel? _channelNotificaciones;
   
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _cargarMensajesNoLeidos();
+    _suscribirseANotificaciones();
+  }
+
+  @override
+  void dispose() {
+    _channelNotificaciones?.unsubscribe();
+    super.dispose();
   }
   
   Future<void> _loadUserData() async {
@@ -62,6 +72,72 @@ class _SharedLayoutState extends State<SharedLayout> {
           _fotoPerfilUrl = null;
         });
       }
+    }
+  }
+
+  Future<void> _cargarMensajesNoLeidos() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      // Contar mensajes no leídos donde el admin no es el remitente
+      final response = await supabase
+          .from('mensajes_soporte')
+          .select('id')
+          .eq('leido', false)
+          .neq('remitente_auth_id', user.id);
+
+      if (mounted) {
+        setState(() {
+          _mensajesNoLeidos = response.length;
+        });
+      }
+    } catch (e) {
+      print('Error al cargar mensajes no leídos: $e');
+    }
+  }
+
+  void _suscribirseANotificaciones() {
+    _channelNotificaciones = supabase
+        .channel('notificaciones_chat_admin')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'mensajes_soporte',
+          callback: (payload) {
+            final user = supabase.auth.currentUser;
+            if (user != null && payload.newRecord['remitente_auth_id'] != user.id) {
+              _cargarMensajesNoLeidos();
+            }
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'mensajes_soporte',
+          callback: (payload) {
+            _cargarMensajesNoLeidos();
+          },
+        )
+        .subscribe();
+  }
+
+  Future<void> _marcarMensajesComoLeidos() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      // Marcar todos los mensajes no leídos como leídos (donde el admin no es el remitente)
+      await supabase
+          .from('mensajes_soporte')
+          .update({'leido': true})
+          .eq('leido', false)
+          .neq('remitente_auth_id', user.id);
+
+      // Actualizar contador
+      _cargarMensajesNoLeidos();
+    } catch (e) {
+      print('Error al marcar mensajes como leídos: $e');
     }
   }
   
@@ -302,6 +378,8 @@ class _SharedLayoutState extends State<SharedLayout> {
 
   Widget _buildMenuItem(Map<String, dynamic> item) {
     final isSelected = widget.currentScreen == item['route'];
+    final isChatSoporte = item['route'] == 'chat_soporte';
+    final showNotification = isChatSoporte && _mensajesNoLeidos > 0;
     
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -316,10 +394,39 @@ class _SharedLayoutState extends State<SharedLayout> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Icon(
-                item['icon'],
-                color: Colors.white,
-                size: 20,
+              Stack(
+                children: [
+                  Icon(
+                    item['icon'],
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  if (showNotification)
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          _mensajesNoLeidos > 99 ? '99+' : _mensajesNoLeidos.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -343,6 +450,11 @@ class _SharedLayoutState extends State<SharedLayout> {
   void _navigateToScreen(String route) {
     // No navegar si ya estamos en la misma pantalla
     if (widget.currentScreen == route) return;
+    
+    // Si navegamos al chat, marcar mensajes como leídos
+    if (route == 'chat_soporte') {
+      _marcarMensajesComoLeidos();
+    }
     
     Widget destinationScreen;
     
