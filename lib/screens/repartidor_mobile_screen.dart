@@ -561,7 +561,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: esUrgente ? const Color(0xFFFFEBEE) : const Color(0xFFF5F5F5),
+        color: esUrgente ? const Color(0xFFFFEBEE) : const Color(0xFFF0F0F0),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
