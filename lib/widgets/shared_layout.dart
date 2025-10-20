@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import '../screens/ordenes_table_screen.dart';
 import '../screens/repartidores_screen.dart';
