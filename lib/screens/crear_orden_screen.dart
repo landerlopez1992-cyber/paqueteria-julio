@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../main.dart';
 import '../widgets/shared_layout.dart';
 import 'ordenes_table_screen.dart';
+import '../data/municipios_cuba.dart';
 
 class CrearOrdenScreen extends StatefulWidget {
   const CrearOrdenScreen({Key? key}) : super(key: key);
@@ -559,10 +561,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
           SizedBox(
             width: 200, // Ancho fijo más compacto
             child: ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Navegar a pantalla de crear emisor
-                _mostrarMensaje('Funcionalidad de crear emisor en desarrollo');
-              },
+              onPressed: _mostrarDialogoCrearEmisor,
               icon: const Icon(Icons.add, size: 16),
               label: const Text('Agregar Emisor'),
               style: ElevatedButton.styleFrom(
@@ -716,10 +715,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
           SizedBox(
             width: 200, // Ancho fijo más compacto
             child: ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Navegar a pantalla de crear destinatario
-                _mostrarMensaje('Funcionalidad de crear destinatario en desarrollo');
-              },
+              onPressed: _mostrarDialogoCrearDestinatario,
               icon: const Icon(Icons.add, size: 16),
               label: const Text('Agregar Destinatario'),
               style: ElevatedButton.styleFrom(
@@ -1583,6 +1579,198 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _mostrarDialogoCrearEmisor() async {
+    final nombreCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final telCtrl = TextEditingController();
+    final dirCtrl = TextEditingController();
+    final empCtrl = TextEditingController();
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Crear Emisor'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: 'Nombre')), 
+              TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email')), 
+              TextField(controller: telCtrl, decoration: const InputDecoration(labelText: 'Teléfono')), 
+              TextField(controller: dirCtrl, decoration: const InputDecoration(labelText: 'Dirección')), 
+              TextField(controller: empCtrl, decoration: const InputDecoration(labelText: 'Empresa (opcional)')), 
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Crear')),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final inserted = await supabase.from('emisores').insert({
+          'nombre': nombreCtrl.text.trim(),
+          'email': emailCtrl.text.trim().isEmpty ? null : emailCtrl.text.trim(),
+          'telefono': telCtrl.text.trim().isEmpty ? null : telCtrl.text.trim(),
+          'direccion': dirCtrl.text.trim(),
+          'empresa': empCtrl.text.trim().isEmpty ? null : empCtrl.text.trim(),
+        }).select('*').single();
+
+        setState(() {
+          _emisores.add(inserted);
+          _emisoresFiltrados = _emisores;
+          _emisorSeleccionado = inserted;
+        });
+
+        _mostrarMensaje('Emisor creado y seleccionado');
+      } catch (e) {
+        _mostrarMensaje('Error al crear emisor: $e');
+      }
+    }
+  }
+
+  Future<void> _mostrarDialogoCrearDestinatario() async {
+    final nombreCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final telDigitsCtrl = TextEditingController(); // Solo dígitos después de +53
+    final dirCtrl = TextEditingController();
+    final bateyCtrl = TextEditingController();
+    final empCtrl = TextEditingController();
+
+    bool isValidPhone(String digits) {
+      final d = digits.replaceAll(RegExp(r'\D'), '');
+      if (d.isEmpty) return false;
+      if (d.startsWith('5')) {
+        return d.length == 8; // Celular en Cuba: 8 dígitos y empieza con 5
+      }
+      return d.length >= 7 && d.length <= 8; // Fijo: 7-8 dígitos
+    }
+
+    await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        String provinciaSel = '';
+        String municipioSel = '';
+        List<String> municipiosDisponibles = [];
+
+        bool canCreate(String nombre, String phone, String prov, String mun) {
+          return nombre.trim().isNotEmpty && isValidPhone(phone) && prov.isNotEmpty && mun.isNotEmpty;
+        }
+
+        return StatefulBuilder(
+          builder: (ctx, setStateSB) => AlertDialog(
+            title: const Text('Crear Destinatario'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: 'Nombre'), onChanged: (_) => setStateSB(() {})), 
+                  TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email'), keyboardType: TextInputType.emailAddress), 
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text('+53', style: TextStyle(fontWeight: FontWeight.w600)),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: telDigitsCtrl,
+                          decoration: InputDecoration(
+                            labelText: 'Teléfono (solo dígitos)',
+                            errorText: telDigitsCtrl.text.isEmpty
+                                ? null
+                                : (isValidPhone(telDigitsCtrl.text) ? null : 'Número inválido para Cuba'),
+                          ),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          onChanged: (_) => setStateSB(() {}),
+                        ),
+                      ),
+                    ],
+                  ), 
+                  TextField(controller: dirCtrl, decoration: const InputDecoration(labelText: 'Dirección')), 
+                  const SizedBox(height: 12),
+                  // Selector Provincia
+                  DropdownButtonFormField<String>(
+                    value: provinciaSel.isEmpty ? null : provinciaSel,
+                    items: MunicipiosCuba.getProvincias()
+                        .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                        .toList(),
+                    onChanged: (val) {
+                      setStateSB(() {
+                        provinciaSel = val ?? '';
+                        municipiosDisponibles = provinciaSel.isEmpty
+                            ? []
+                            : MunicipiosCuba.getMunicipiosPorProvincia(provinciaSel);
+                        municipioSel = '';
+                      });
+                    },
+                    decoration: const InputDecoration(labelText: 'Provincia'),
+                  ),
+                  const SizedBox(height: 12),
+                  // Selector Municipio dependiente
+                  DropdownButtonFormField<String>(
+                    value: municipioSel.isEmpty ? null : municipioSel,
+                    items: municipiosDisponibles
+                        .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                        .toList(),
+                    onChanged: (val) => setStateSB(() => municipioSel = val ?? ''),
+                    decoration: const InputDecoration(labelText: 'Municipio'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(controller: bateyCtrl, decoration: const InputDecoration(labelText: 'Consejo popular/Batey (opcional)')), 
+                  TextField(controller: empCtrl, decoration: const InputDecoration(labelText: 'Empresa (opcional)')), 
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
+              ElevatedButton(
+                onPressed: canCreate(nombreCtrl.text, telDigitsCtrl.text, provinciaSel, municipioSel)
+                    ? () async {
+                        try {
+                          final inserted = await supabase.from('destinatarios').insert({
+                            'nombre': nombreCtrl.text.trim(),
+                            'email': emailCtrl.text.trim().isEmpty ? null : emailCtrl.text.trim(),
+                            'telefono': '+53${telDigitsCtrl.text.trim()}',
+                            'direccion': dirCtrl.text.trim(),
+                            'municipio': municipioSel,
+                            'provincia': provinciaSel,
+                            'consejo_popular_batey': bateyCtrl.text.trim().isEmpty ? null : bateyCtrl.text.trim(),
+                            'empresa': empCtrl.text.trim().isEmpty ? null : empCtrl.text.trim(),
+                          }).select('*').single();
+
+                          setState(() {
+                            _destinatarios.add(inserted);
+                            _destinatariosFiltrados = _destinatarios;
+                            _destinatarioSeleccionado = inserted;
+                          });
+
+                          if (mounted) Navigator.of(ctx).pop(true);
+                          _mostrarMensaje('Destinatario creado y seleccionado');
+                        } catch (e) {
+                          _mostrarMensaje('Error al crear destinatario: $e');
+                        }
+                      }
+                    : null,
+                child: const Text('Crear'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

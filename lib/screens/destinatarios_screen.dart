@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../main.dart';
 import '../data/municipios_cuba.dart';
 import 'detalle_destinatario_screen.dart';
@@ -33,6 +34,17 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
   // Variables para selección múltiple
   Set<String> _selectedDestinatarios = {}; // IDs de destinatarios seleccionados (UUID)
   bool _selectAll = false; // Estado del checkbox "seleccionar todos"
+
+  // Validación en vivo de teléfono Cuba
+  bool _isPhoneValidLive = false;
+  bool _isValidCubanPhone(String digits) {
+    final d = digits.replaceAll(RegExp(r'\D'), '');
+    if (d.isEmpty) return false;
+    if (d.startsWith('5')) {
+      return d.length == 8; // Celular: 8 dígitos empezando con 5
+    }
+    return d.length >= 7 && d.length <= 8; // Fijo: 7–8
+  }
 
   @override
   void initState() {
@@ -114,6 +126,21 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
       return;
     }
 
+    // Validación y normalización de teléfono Cuba
+    String digits = _telefonoController.text.replaceAll(RegExp(r'\D'), '');
+    bool isValidPhone() {
+      if (digits.isEmpty) return false;
+      if (digits.startsWith('5')) {
+        return digits.length == 8; // Celular: 8 dígitos empezando con 5
+      }
+      return digits.length >= 7 && digits.length <= 8; // Fijo: 7–8 dígitos
+    }
+
+    if (!isValidPhone()) {
+      _showErrorDialog('Teléfono inválido. Para Cuba: celulares 8 dígitos iniciando en 5; fijos 7–8 dígitos.');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -122,7 +149,7 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
       await supabase.from('destinatarios').insert({
         'nombre': _nombreController.text.trim(),
         'email': _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-        'telefono': _telefonoController.text.trim().isEmpty ? null : _telefonoController.text.trim(),
+        'telefono': '+53$digits',
         'direccion': _direccionController.text.trim().isEmpty ? null : _direccionController.text.trim(),
         'municipio': _municipioSeleccionado,
         'provincia': _provinciaSeleccionada,
@@ -488,15 +515,58 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _telefonoController,
-                          decoration: const InputDecoration(
-                            labelText: 'Teléfono',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.phone),
-                          ),
-                          keyboardType: TextInputType.phone,
+                      Flexible(
+                        child: Row(
+                          children: [
+                            // Chip +53 (no editable)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F5F5),
+                                border: Border.all(color: const Color(0xFFE0E0E0)),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                '+53',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _telefonoController,
+                                decoration: InputDecoration(
+                                  labelText: 'Teléfono (solo dígitos)',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: _isPhoneValidLive ? const Color(0xFF4CAF50) : const Color(0xFFE0E0E0),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: _isPhoneValidLive ? const Color(0xFF4CAF50) : const Color(0xFFE0E0E0),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: _isPhoneValidLive ? const Color(0xFF4CAF50) : const Color(0xFFFF9800),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  prefixIcon: const Icon(Icons.phone),
+                                  helperText: _telefonoController.text.isEmpty
+                                      ? null
+                                      : (_isPhoneValidLive ? 'Número válido para Cuba' : 'Celular: 8 dígitos inicia en 5. Fijo: 7–8 dígitos.'),
+                                  helperStyle: TextStyle(
+                                    color: _isPhoneValidLive ? const Color(0xFF4CAF50) : const Color(0xFF666666),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                onChanged: (v) => setState(() => _isPhoneValidLive = _isValidCubanPhone(v)),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 16),

@@ -6,7 +6,7 @@ import '../models/orden.dart';
 import 'repartidor_perfil_screen.dart';
 import 'chat_soporte_screen.dart';
 import 'detalle_orden_screen.dart';
-import 'qr_scanner_simple_screen.dart';
+import 'qr_scanner_fullscreen.dart';
 import '../config/app_colors.dart';
 
 class RepartidorMobileScreen extends StatefulWidget {
@@ -469,7 +469,7 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => const QRScannerSimpleScreen(),
+                  builder: (context) => const QRScannerFullscreen(),
                 ),
               );
             },

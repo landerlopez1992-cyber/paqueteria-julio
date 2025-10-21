@@ -8,7 +8,6 @@ import 'package:pdf/widgets.dart' as pw;
 import '../models/orden.dart';
 import '../config/app_colors.dart';
 import '../main.dart';
-import 'dart:html' as html;
 
 class OrdenPrintModal extends StatefulWidget {
   final Orden orden;
@@ -424,28 +423,13 @@ class _OrdenPrintModalState extends State<OrdenPrintModal> {
       final pdfBytes = await pdf.save();
       
       if (kIsWeb) {
-        // Para WEB: Descargar el PDF y abrir en nueva pestaña para imprimir
-        final blob = html.Blob([pdfBytes], 'application/pdf');
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        final anchor = html.AnchorElement(href: url)
-          ..setAttribute('download', 'Orden_${widget.orden.numeroOrden}.pdf')
-          ..click();
-        
-        // Abrir en nueva pestaña para imprimir directamente
-        html.window.open(url, '_blank');
-        
-        html.Url.revokeObjectUrl(url);
-        
+        // Fallback en web: intentar abrir diálogo nativo si está disponible
+        await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => pdfBytes,
+          name: 'Orden_${widget.orden.numeroOrden}.pdf',
+        );
         if (context.mounted) {
           Navigator.of(context).pop();
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('PDF generado. Usa Ctrl+P en la nueva pestaña para imprimir'),
-              backgroundColor: Color(0xFF4CAF50),
-              duration: Duration(seconds: 4),
-            ),
-          );
         }
       } else {
         // Para MÓVIL/DESKTOP: Usar printing package
