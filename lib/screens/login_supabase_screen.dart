@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart'; // Para kIsWeb
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import 'role_redirect_screen.dart';
-import 'super_admin_dashboard_screen.dart';
 
 class LoginSupabaseScreen extends StatefulWidget {
   const LoginSupabaseScreen({super.key});
