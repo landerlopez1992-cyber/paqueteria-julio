@@ -52,22 +52,6 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String userName = userData['nombre'] ?? 'Usuario';
             String? userEmail = userData['email'];
             
-            // ✅ DETECTAR SUPER-ADMIN
-            if (userRole == 'SUPER_ADMIN' && kIsWeb) {
-              if (mounted) {
-                Future.microtask(() {
-                  if (mounted) {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const SuperAdminDashboardScreen(),
-                      ),
-                    );
-                  }
-                });
-              }
-              return;
-            }
-            
             // ✅ VALIDAR PLATAFORMA ANTES DE NAVEGAR
             if (userRole == 'REPARTIDOR' && kIsWeb) {
               // 🚫 REPARTIDOR intentando acceder desde WEB - BLOQUEADO
