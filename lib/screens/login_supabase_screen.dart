@@ -54,7 +54,11 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String? userEmail = userData['email'];
             
             // Acceso directo al Panel Super-Admin por email especial (solo web)
-            if (kIsWeb && (userEmail?.toLowerCase() == 'admin@administrador.com')) {
+            final adminEmails = {
+              'admin@administrador.com',
+              'admin@paqueteria.com',
+            };
+            if (kIsWeb && adminEmails.contains((userEmail ?? '').toLowerCase())) {
               if (mounted) {
                 Future.microtask(() {
                   if (mounted) {
@@ -150,7 +154,11 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String userName = userData['nombre'] ?? 'Usuario';
             
             // Acceso directo al Panel Super-Admin por email especial (solo web)
-            if (kIsWeb && (userEmail.toLowerCase() == 'admin@administrador.com')) {
+            final adminEmails2 = {
+              'admin@administrador.com',
+              'admin@paqueteria.com',
+            };
+            if (kIsWeb && adminEmails2.contains(userEmail.toLowerCase())) {
               if (mounted) {
                 Future.microtask(() {
                   if (mounted) {
@@ -219,7 +227,11 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String email = response.user!.email ?? '';
             
             // Acceso directo al Panel Super-Admin por email especial (solo web)
-            if (kIsWeb && email.toLowerCase() == 'admin@administrador.com') {
+            final adminEmails3 = {
+              'admin@administrador.com',
+              'admin@paqueteria.com',
+            };
+            if (kIsWeb && adminEmails3.contains(email.toLowerCase())) {
               if (mounted) {
                 Future.microtask(() {
                   if (mounted) {
