@@ -23,6 +23,7 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
       String _tipoVehiculoSeleccionado = 'moto';
       bool _isLoading = false;
       bool _showCreateForm = false;
+      String? _currentTenantId; // Tenant ID del admin actual
 
       // Lista completa de provincias de Cuba
       final List<String> _provinciasCuba = [
@@ -56,7 +57,32 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRepartidores();
+    _loadCurrentTenantId();
+  }
+
+  Future<void> _loadCurrentTenantId() async {
+    try {
+      final currentUser = supabase.auth.currentUser;
+      if (currentUser != null) {
+        final userData = await supabase
+            .from('usuarios')
+            .select('tenant_id')
+            .eq('auth_id', currentUser.id)
+            .single();
+        
+        setState(() {
+          _currentTenantId = userData['tenant_id'];
+        });
+        
+        print('🏢 Tenant ID del admin actual: $_currentTenantId');
+        
+        // Cargar repartidores después de obtener el tenant_id
+        _loadRepartidores();
+      }
+    } catch (e) {
+      print('❌ Error obteniendo tenant_id: $e');
+      _showErrorDialog('Error al cargar información de la empresa');
+    }
   }
 
   @override
@@ -70,22 +96,34 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
   }
 
   Future<void> _loadRepartidores() async {
+    // No cargar si no tenemos tenant_id aún
+    if (_currentTenantId == null) {
+      print('⚠️ Esperando tenant_id antes de cargar repartidores...');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
         try {
+          print('📊 Cargando repartidores para tenant_id: $_currentTenantId');
+          
           final response = await supabase
               .from('usuarios')
-              .select('id, auth_id, email, nombre, rol, telefono, direccion, provincias_asignadas, tipo_vehiculo, foto_perfil, created_at')
+              .select('id, auth_id, email, nombre, rol, telefono, direccion, provincias_asignadas, tipo_vehiculo, foto_perfil, created_at, tenant_id')
               .eq('rol', 'REPARTIDOR')
+              .eq('tenant_id', _currentTenantId!) // FILTRAR POR TENANT
               .order('created_at', ascending: false);
+
+      print('✅ Repartidores cargados: ${response.length}');
 
       setState(() {
         _repartidores = List<Map<String, dynamic>>.from(response);
         _isLoading = false;
       });
     } catch (e) {
+      print('❌ Error cargando repartidores: $e');
       setState(() {
         _isLoading = false;
       });
@@ -118,7 +156,14 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
       );
 
       if (authResponse.user != null) {
-            // Crear perfil en la tabla usuarios con provincias asignadas y tipo de vehículo
+            // Validar que tenemos tenant_id
+            if (_currentTenantId == null) {
+              throw Exception('No se pudo identificar la empresa');
+            }
+
+            print('👤 Creando repartidor para tenant_id: $_currentTenantId');
+
+            // Crear perfil en la tabla usuarios con provincias asignadas, tipo de vehículo y tenant_id
             await supabase.from('usuarios').insert({
               'auth_id': authResponse.user!.id,
               'email': _emailController.text.trim(),
@@ -128,7 +173,10 @@ class _RepartidoresScreenState extends State<RepartidoresScreen> {
               'direccion': _direccionController.text.trim().isEmpty ? null : _direccionController.text.trim(),
               'provincias_asignadas': _provinciasSeleccionadas.join(','),
               'tipo_vehiculo': _tipoVehiculoSeleccionado,
+              'tenant_id': _currentTenantId, // ASIGNAR TENANT_ID
             });
+
+            print('✅ Repartidor creado exitosamente para esta empresa');
 
             // Limpiar formulario
             _nombreController.clear();

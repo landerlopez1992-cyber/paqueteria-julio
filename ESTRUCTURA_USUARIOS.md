@@ -103,6 +103,15 @@ final adminEmails = {
 - Row Level Security (RLS) asegura que cada empresa solo vea sus datos
 - El Super-Admin puede ver TODOS los `tenant_id`
 
+**⚠️ IMPORTANTE - Aislamiento por Empresa:**
+- ✅ Cada empresa tiene sus **propios emisores**
+- ✅ Cada empresa tiene sus **propios destinatarios**
+- ✅ Cada empresa tiene sus **propios repartidores** (PRIVADOS)
+- ✅ Cada empresa tiene sus **propias órdenes**
+- ✅ Cada empresa tiene su **propia configuración**
+- ❌ Los repartidores NO son compartidos entre empresas
+- ❌ Una empresa NO puede ver repartidores de otras empresas
+
 ### Bloqueo de Plataforma
 - Repartidores: Bloqueados en Web, solo móvil
 - Administradores: Solo Web, no móvil
