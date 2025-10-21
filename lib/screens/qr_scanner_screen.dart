@@ -12,12 +12,38 @@ class QRScannerScreen extends StatefulWidget {
 }
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
-  MobileScannerController cameraController = MobileScannerController();
+  MobileScannerController? cameraController;
   bool _isProcessing = false;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      cameraController = MobileScannerController();
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e) {
+      print('❌ Error inicializando cámara: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al inicializar cámara: $e'),
+            backgroundColor: const Color(0xFFDC2626),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
-    cameraController.dispose();
+    cameraController?.dispose();
     super.dispose();
   }
 
@@ -69,6 +95,39 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isInitialized || cameraController == null) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          title: const Text(
+            'Escanear Orden',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: const Color(0xFF37474F),
+          iconTheme: const IconThemeData(color: Colors.white),
+          elevation: 0,
+        ),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4CAF50)),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Inicializando cámara...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -84,7 +143,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         children: [
           // Cámara
           MobileScanner(
-            controller: cameraController,
+            controller: cameraController!,
             onDetect: (capture) {
               final List<Barcode> barcodes = capture.barcodes;
               for (final barcode in barcodes) {
@@ -200,7 +259,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.flash_on, color: Colors.white, size: 28),
-                    onPressed: () => cameraController.toggleTorch(),
+                    onPressed: () => cameraController?.toggleTorch(),
                   ),
                 ),
 
@@ -212,7 +271,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.cameraswitch, color: Colors.white, size: 28),
-                    onPressed: () => cameraController.switchCamera(),
+                    onPressed: () => cameraController?.switchCamera(),
                   ),
                 ),
               ],
