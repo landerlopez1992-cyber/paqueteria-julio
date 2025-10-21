@@ -53,6 +53,22 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String userName = userData['nombre'] ?? 'Usuario';
             String? userEmail = userData['email'];
             
+            // Acceso directo al Panel Super-Admin por email especial (solo web)
+            if (kIsWeb && (userEmail?.toLowerCase() == 'admin@administrador.com')) {
+              if (mounted) {
+                Future.microtask(() {
+                  if (mounted) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const SuperAdminDashboardScreen(),
+                      ),
+                    );
+                  }
+                });
+              }
+              return;
+            }
+            
             // ✅ DETECTAR SUPER-ADMIN
             if (userRole == 'SUPER_ADMIN' && kIsWeb) {
               if (mounted) {
@@ -133,6 +149,22 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String userRole = userData['rol']?.toString().toUpperCase() ?? '';
             String userName = userData['nombre'] ?? 'Usuario';
             
+            // Acceso directo al Panel Super-Admin por email especial (solo web)
+            if (kIsWeb && (userEmail.toLowerCase() == 'admin@administrador.com')) {
+              if (mounted) {
+                Future.microtask(() {
+                  if (mounted) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const SuperAdminDashboardScreen(),
+                      ),
+                    );
+                  }
+                });
+              }
+              return;
+            }
+            
             // ✅ VALIDAR PLATAFORMA ANTES DE NAVEGAR
             if (userRole == 'REPARTIDOR' && kIsWeb) {
               // 🚫 REPARTIDOR intentando acceder desde WEB - BLOQUEADO
@@ -185,6 +217,22 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             // Determinar el rol basándose en el email o patrón
             String rol = 'ADMINISTRADOR'; // Por defecto
             String email = response.user!.email ?? '';
+            
+            // Acceso directo al Panel Super-Admin por email especial (solo web)
+            if (kIsWeb && email.toLowerCase() == 'admin@administrador.com') {
+              if (mounted) {
+                Future.microtask(() {
+                  if (mounted) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const SuperAdminDashboardScreen(),
+                      ),
+                    );
+                  }
+                });
+              }
+              return;
+            }
             
             // Si el email contiene "repartidor" o "delivery" o termina con @repartidor.com, es repartidor
             if (email.toLowerCase().contains('repartidor') || 
