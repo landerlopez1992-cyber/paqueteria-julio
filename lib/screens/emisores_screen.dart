@@ -21,7 +21,7 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
   List<Map<String, dynamic>> _emisoresFiltrados = [];
   bool _isLoading = false;
   bool _showCreateForm = false;
-  Set<int> _selectedEmisores = {}; // IDs de emisores seleccionados
+  Set<String> _selectedEmisores = {}; // IDs de emisores seleccionados (UUID)
   bool _selectAll = false; // Estado del checkbox "seleccionar todos"
 
   @override
@@ -201,7 +201,7 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
       _selectAll = value ?? false;
       if (_selectAll) {
         // Seleccionar todos los emisores filtrados
-        _selectedEmisores = _emisoresFiltrados.map((e) => e['id'] as int).toSet();
+        _selectedEmisores = _emisoresFiltrados.map((e) => e['id'].toString()).toSet();
       } else {
         // Deseleccionar todos
         _selectedEmisores.clear();
@@ -210,7 +210,7 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
   }
 
   // Seleccionar/deseleccionar un emisor individual
-  void _toggleSelectEmisor(int id) {
+  void _toggleSelectEmisor(String id) {
     setState(() {
       if (_selectedEmisores.contains(id)) {
         _selectedEmisores.remove(id);
@@ -665,7 +665,7 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
                             rows: _emisoresFiltrados.asMap().entries.map((entry) {
                               final index = entry.key;
                               final emisor = entry.value;
-                              final emisorId = emisor['id'] as int;
+                              final emisorId = emisor['id'].toString(); // UUID es String
                               final fechaRegistro = emisor['created_at'] != null
                                   ? DateTime.parse(emisor['created_at'])
                                   : null;
