@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart'; // Para kIsWeb
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import 'role_redirect_screen.dart';
+import 'super_admin_dashboard_screen.dart';
 
 class LoginSupabaseScreen extends StatefulWidget {
   const LoginSupabaseScreen({super.key});
@@ -51,6 +52,22 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String userRole = userData['rol']?.toString().toUpperCase() ?? '';
             String userName = userData['nombre'] ?? 'Usuario';
             String? userEmail = userData['email'];
+            
+            // ✅ DETECTAR SUPER-ADMIN
+            if (userRole == 'SUPER_ADMIN' && kIsWeb) {
+              if (mounted) {
+                Future.microtask(() {
+                  if (mounted) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const SuperAdminDashboardScreen(),
+                      ),
+                    );
+                  }
+                });
+              }
+              return;
+            }
             
             // ✅ VALIDAR PLATAFORMA ANTES DE NAVEGAR
             if (userRole == 'REPARTIDOR' && kIsWeb) {
