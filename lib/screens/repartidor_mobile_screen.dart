@@ -6,6 +6,7 @@ import '../models/orden.dart';
 import 'repartidor_perfil_screen.dart';
 import 'chat_soporte_screen.dart';
 import 'detalle_orden_screen.dart';
+import 'qr_scanner_screen.dart';
 import '../config/app_colors.dart';
 
 class RepartidorMobileScreen extends StatefulWidget {
@@ -468,6 +469,21 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
+                  builder: (context) => const QRScannerScreen(),
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.qr_code_scanner,
+              color: Colors.white,
+              size: 28,
+            ),
+            tooltip: 'Escanear Orden',
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
                   builder: (context) => const RepartidorPerfilScreen(),
                 ),
               );
@@ -488,15 +504,6 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
             },
             icon: const Icon(
               Icons.refresh,
-              color: Colors.white,
-              size: 24,
-            ),
-            tooltip: 'Actualizar',
-          ),
-          IconButton(
-            onPressed: _mostrarConfirmacionLogout,
-            icon: const Icon(
-              Icons.logout,
               color: Colors.white,
               size: 24,
             ),
@@ -1102,78 +1109,6 @@ class _RepartidorMobileScreenState extends State<RepartidorMobileScreen> with Wi
     );
   }
 
-  Future<void> _mostrarConfirmacionLogout() async {
-    final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.logout, color: Colors.red, size: 28),
-            const SizedBox(width: 12),
-            const Text(
-              'Cerrar Sesión',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2C2C2C),
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          '¿Estás seguro de que quieres cerrar sesión?',
-          style: TextStyle(
-            fontSize: 16,
-            color: Color(0xFF2C2C2C),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(
-                color: Color(0xFF666666),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Cerrar Sesión',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmar == true) {
-      try {
-        print('🚪 Cerrando sesión...');
-        await supabase.auth.signOut();
-        if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-        }
-      } catch (e) {
-        print('❌ Error al cerrar sesión: $e');
-        if (mounted) {
-          _mostrarMensaje('Error al cerrar sesión: $e');
-        }
-      }
-    }
-  }
 
   Future<bool> _mostrarConfirmacion(String titulo, String mensaje) async {
     final resultado = await showDialog<bool>(
