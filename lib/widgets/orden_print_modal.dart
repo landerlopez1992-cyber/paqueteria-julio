@@ -584,14 +584,23 @@ class _OrdenPrintModalState extends State<OrdenPrintModal> {
                         style: const pw.TextStyle(fontSize: 9),
                         maxLines: 2,
                       ),
-                      if (widget.orden.ciudadDestino != null || widget.orden.provinciaDestino != null) ...[
+                      // Provincia y Municipio
+                      if (widget.orden.provinciaDestino != null || widget.orden.municipioDestino != null) ...[
                         pw.SizedBox(height: 2),
                         pw.Text(
-                          '${widget.orden.ciudadDestino ?? ''} ${widget.orden.provinciaDestino ?? ''}'.trim(),
+                          '${widget.orden.municipioDestino ?? ''}, ${widget.orden.provinciaDestino ?? ''}'.trim().replaceAll(RegExp(r'^,\s*|,\s*$'), ''),
                           style: pw.TextStyle(
                             fontSize: 9,
                             fontWeight: pw.FontWeight.bold,
                           ),
+                        ),
+                      ],
+                      // Ciudad (si existe y es diferente)
+                      if (widget.orden.ciudadDestino != null && widget.orden.ciudadDestino != widget.orden.municipioDestino) ...[
+                        pw.SizedBox(height: 2),
+                        pw.Text(
+                          widget.orden.ciudadDestino!,
+                          style: const pw.TextStyle(fontSize: 8),
                         ),
                       ],
                     ],
