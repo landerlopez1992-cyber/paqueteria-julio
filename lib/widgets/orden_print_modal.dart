@@ -1,11 +1,13 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/orden.dart';
 import '../config/app_colors.dart';
+import 'dart:html' as html;
 
 class OrdenPrintModal extends StatelessWidget {
   final Orden orden;
@@ -343,25 +345,53 @@ class OrdenPrintModal extends StatelessWidget {
     try {
       // Generar el PDF
       final pdf = await _generarPDF();
+      final pdfBytes = await pdf.save();
       
-      // Abrir diálogo de impresión del sistema
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => pdf.save(),
-        name: 'Orden_${orden.numeroOrden}.pdf',
-      );
-      
-      if (context.mounted) {
-        Navigator.of(context).pop();
+      if (kIsWeb) {
+        // Para WEB: Descargar el PDF y abrir en nueva pestaña para imprimir
+        final blob = html.Blob([pdfBytes], 'application/pdf');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', 'Orden_${orden.numeroOrden}.pdf')
+          ..click();
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Documento listo para imprimir'),
-            backgroundColor: Color(0xFF4CAF50),
-            duration: Duration(seconds: 2),
-          ),
+        // Abrir en nueva pestaña para imprimir directamente
+        html.window.open(url, '_blank');
+        
+        html.Url.revokeObjectUrl(url);
+        
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('PDF generado. Usa Ctrl+P en la nueva pestaña para imprimir'),
+              backgroundColor: Color(0xFF4CAF50),
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      } else {
+        // Para MÓVIL/DESKTOP: Usar printing package
+        await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => pdfBytes,
+          name: 'Orden_${orden.numeroOrden}.pdf',
         );
+        
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Documento listo para imprimir'),
+              backgroundColor: Color(0xFF4CAF50),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (e) {
+      print('Error al imprimir: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
