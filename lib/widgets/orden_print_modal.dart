@@ -7,9 +7,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/orden.dart';
 import '../config/app_colors.dart';
+import '../main.dart';
 import 'dart:html' as html;
 
-class OrdenPrintModal extends StatelessWidget {
+class OrdenPrintModal extends StatefulWidget {
   final Orden orden;
 
   const OrdenPrintModal({
@@ -18,7 +19,75 @@ class OrdenPrintModal extends StatelessWidget {
   });
 
   @override
+  State<OrdenPrintModal> createState() => _OrdenPrintModalState();
+}
+
+class _OrdenPrintModalState extends State<OrdenPrintModal> {
+  bool _isLoading = true;
+  bool _incluirQR = true;
+  bool _incluirDatosDestinatario = true;
+  bool _incluirNumeroOrden = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarConfiguracion();
+  }
+
+  Future<void> _cargarConfiguracion() async {
+    try {
+      final response = await supabase
+          .from('configuracion_envios')
+          .select('incluir_qr, incluir_datos_destinatario, incluir_numero_orden')
+          .limit(1)
+          .single();
+
+      if (mounted) {
+        setState(() {
+          _incluirQR = response['incluir_qr'] ?? true;
+          _incluirDatosDestinatario = response['incluir_datos_destinatario'] ?? true;
+          _incluirNumeroOrden = response['incluir_numero_orden'] ?? true;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error al cargar configuración de impresión: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 200),
+          padding: const EdgeInsets.all(40),
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Color(0xFF4CAF50)),
+              SizedBox(height: 20),
+              Text(
+                'Cargando configuración...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF666666),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -84,16 +153,18 @@ class OrdenPrintModal extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(
-                                'Orden #${orden.id}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFF666666),
+                              if (_incluirNumeroOrden) ...[
+                                Text(
+                                  'Orden #${widget.orden.id}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xFF666666),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
+                                const SizedBox(height: 4),
+                              ],
                               Text(
-                                'Fecha: ${_formatFecha(orden.fechaCreacion)}',
+                                'Fecha: ${_formatFecha(widget.orden.fechaCreacion)}',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Color(0xFF666666),
@@ -103,41 +174,42 @@ class OrdenPrintModal extends StatelessWidget {
                           ),
                         ),
                         
-                        // Código QR
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFF4CAF50), width: 3),
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.white,
+                        // Código QR (solo si está habilitado)
+                        if (_incluirQR)
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: const Color(0xFF4CAF50), width: 3),
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.white,
+                            ),
+                            child: Column(
+                              children: [
+                                QrImageView(
+                                  data: widget.orden.id, // El ID de la orden es único
+                                  version: QrVersions.auto,
+                                  size: 120,
+                                  backgroundColor: Colors.white,
+                                  eyeStyle: const QrEyeStyle(
+                                    eyeShape: QrEyeShape.square,
+                                    color: Color(0xFF37474F),
+                                  ),
+                                  dataModuleStyle: const QrDataModuleStyle(
+                                    dataModuleShape: QrDataModuleShape.square,
+                                    color: Color(0xFF37474F),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Escanear para verificar',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Color(0xFF666666),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          child: Column(
-                            children: [
-                              QrImageView(
-                                data: orden.id, // El ID de la orden es único
-                                version: QrVersions.auto,
-                                size: 120,
-                                backgroundColor: Colors.white,
-                                eyeStyle: const QrEyeStyle(
-                                  eyeShape: QrEyeShape.square,
-                                  color: Color(0xFF37474F),
-                                ),
-                                dataModuleStyle: const QrDataModuleStyle(
-                                  dataModuleShape: QrDataModuleShape.square,
-                                  color: Color(0xFF37474F),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Escanear para verificar',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Color(0xFF666666),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                     
@@ -149,25 +221,29 @@ class OrdenPrintModal extends StatelessWidget {
                     _buildSeccion(
                       'Emisor',
                       [
-                        _buildInfoRow('Nombre:', orden.emisor),
+                        _buildInfoRow('Nombre:', widget.orden.emisor),
                       ],
                     ),
                     
                     const SizedBox(height: 20),
                     
-                    // Información del Destinatario
-                    _buildSeccion(
-                      'Destinatario',
-                      [
-                        _buildInfoRow('Nombre:', orden.receptor),
-                        _buildInfoRow('Teléfono:', orden.telefonoDestinatario ?? 'N/A'),
-                        _buildInfoRow('Dirección:', orden.direccionDestino),
-                        if (orden.ciudadDestino != null)
-                          _buildInfoRow('Ciudad:', orden.ciudadDestino!),
-                        if (orden.provinciaDestino != null)
-                          _buildInfoRow('Provincia:', orden.provinciaDestino!),
-                      ],
-                    ),
+                    // Información del Destinatario (solo si está habilitado)
+                    if (_incluirDatosDestinatario)
+                      _buildSeccion(
+                        'Destinatario',
+                        [
+                          _buildInfoRow('Nombre:', widget.orden.receptor),
+                          _buildInfoRow('Teléfono:', widget.orden.telefonoDestinatario ?? 'N/A'),
+                          _buildInfoRow('Dirección:', widget.orden.direccionDestino),
+                          if (widget.orden.ciudadDestino != null)
+                            _buildInfoRow('Ciudad:', widget.orden.ciudadDestino!),
+                          if (widget.orden.provinciaDestino != null)
+                            _buildInfoRow('Provincia:', widget.orden.provinciaDestino!),
+                        ],
+                      ),
+                    
+                    if (_incluirDatosDestinatario)
+                      const SizedBox(height: 20),
                     
                     const SizedBox(height: 20),
                     
@@ -175,13 +251,13 @@ class OrdenPrintModal extends StatelessWidget {
                     _buildSeccion(
                       'Detalles del Paquete',
                       [
-                        _buildInfoRow('Descripción:', orden.descripcion),
-                        if (orden.cantidadBultos != null)
-                          _buildInfoRow('Cantidad de bultos:', '${orden.cantidadBultos}'),
-                        if (orden.peso != null)
-                          _buildInfoRow('Peso:', '${orden.peso} lb'),
-                        if (orden.notas != null && orden.notas!.isNotEmpty)
-                          _buildInfoRow('Notas:', orden.notas!),
+                        _buildInfoRow('Descripción:', widget.orden.descripcion),
+                        if (widget.orden.cantidadBultos != null)
+                          _buildInfoRow('Cantidad de bultos:', '${widget.orden.cantidadBultos}'),
+                        if (widget.orden.peso != null)
+                          _buildInfoRow('Peso:', '${widget.orden.peso} lb'),
+                        if (widget.orden.notas != null && widget.orden.notas!.isNotEmpty)
+                          _buildInfoRow('Notas:', widget.orden.notas!),
                       ],
                     ),
                     
@@ -191,9 +267,9 @@ class OrdenPrintModal extends StatelessWidget {
                     _buildSeccion(
                       'Información de Entrega',
                       [
-                        _buildInfoRow('Estado:', orden.estado),
-                        if (orden.fechaEntrega != null)
-                          _buildInfoRow('Fecha de entrega:', _formatFecha(orden.fechaEntrega!)),
+                        _buildInfoRow('Estado:', widget.orden.estado),
+                        if (widget.orden.fechaEntrega != null)
+                          _buildInfoRow('Fecha de entrega:', _formatFecha(widget.orden.fechaEntrega!)),
                       ],
                     ),
                     
@@ -352,7 +428,7 @@ class OrdenPrintModal extends StatelessWidget {
         final blob = html.Blob([pdfBytes], 'application/pdf');
         final url = html.Url.createObjectUrlFromBlob(blob);
         final anchor = html.AnchorElement(href: url)
-          ..setAttribute('download', 'Orden_${orden.numeroOrden}.pdf')
+          ..setAttribute('download', 'Orden_${widget.orden.numeroOrden}.pdf')
           ..click();
         
         // Abrir en nueva pestaña para imprimir directamente
@@ -375,7 +451,7 @@ class OrdenPrintModal extends StatelessWidget {
         // Para MÓVIL/DESKTOP: Usar printing package
         await Printing.layoutPdf(
           onLayout: (PdfPageFormat format) async => pdfBytes,
-          name: 'Orden_${orden.numeroOrden}.pdf',
+          name: 'Orden_${widget.orden.numeroOrden}.pdf',
         );
         
         if (context.mounted) {
@@ -407,8 +483,8 @@ class OrdenPrintModal extends StatelessWidget {
   Future<pw.Document> _generarPDF() async {
     final pdf = pw.Document();
     
-    // Generar el código QR como imagen
-    final qrImageBytes = await _generarQRBytes();
+    // Generar el código QR como imagen (solo si está habilitado)
+    final qrImageBytes = _incluirQR ? await _generarQRBytes() : null;
 
     // Formato 4x6 pulgadas para etiquetas térmicas (estándar de paquetería)
     // 288 puntos x 432 puntos (72 DPI)
@@ -434,18 +510,21 @@ class OrdenPrintModal extends StatelessWidget {
                 ),
               ),
               pw.SizedBox(height: 2),
-              pw.Text(
-                '#${orden.numeroOrden}',
-                style: pw.TextStyle(
-                  fontSize: 12,
-                  fontWeight: pw.FontWeight.bold,
+              
+              // Número de orden (solo si está habilitado)
+              if (_incluirNumeroOrden) ...[
+                pw.Text(
+                  '#${widget.orden.numeroOrden}',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
-              ),
+                pw.SizedBox(height: 8),
+              ],
               
-              pw.SizedBox(height: 8),
-              
-              // CÓDIGO QR GRANDE - Prioritario
-              if (qrImageBytes != null)
+              // CÓDIGO QR GRANDE - Prioritario (solo si está habilitado)
+              if (_incluirQR && qrImageBytes != null) ...[
                 pw.Container(
                   width: 180,  // QR más grande para fácil escaneo
                   height: 180,
@@ -454,69 +533,73 @@ class OrdenPrintModal extends StatelessWidget {
                   ),
                   child: pw.Image(pw.MemoryImage(qrImageBytes)),
                 ),
+                pw.SizedBox(height: 6),
+                pw.Text(
+                  'ESCANEAR PARA VERIFICAR',
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+                pw.SizedBox(height: 10),
+              ],
               
-              pw.SizedBox(height: 6),
-              pw.Text(
-                'ESCANEAR PARA VERIFICAR',
-                style: const pw.TextStyle(fontSize: 8),
-              ),
-              
-              pw.SizedBox(height: 10),
               pw.Divider(thickness: 1),
               pw.SizedBox(height: 6),
               
-              // Destinatario - INFORMACIÓN MÁS IMPORTANTE
-              pw.Container(
-                width: double.infinity,
-                padding: const pw.EdgeInsets.all(6),
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.grey300,
-                ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'PARA:',
-                      style: pw.TextStyle(
-                        fontSize: 8,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Text(
-                      orden.receptor.toUpperCase(),
-                      style: pw.TextStyle(
-                        fontSize: 11,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                    ),
-                    if (orden.telefonoDestinatario != null) ...[
-                      pw.SizedBox(height: 2),
+              // Destinatario - INFORMACIÓN MÁS IMPORTANTE (solo si está habilitado)
+              if (_incluirDatosDestinatario)
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.all(6),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey300,
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
                       pw.Text(
-                        'Tel: ${orden.telefonoDestinatario}',
-                        style: const pw.TextStyle(fontSize: 9),
-                      ),
-                    ],
-                    pw.SizedBox(height: 2),
-                    pw.Text(
-                      orden.direccionDestino,
-                      style: const pw.TextStyle(fontSize: 9),
-                      maxLines: 2,
-                    ),
-                    if (orden.ciudadDestino != null || orden.provinciaDestino != null) ...[
-                      pw.SizedBox(height: 2),
-                      pw.Text(
-                        '${orden.ciudadDestino ?? ''} ${orden.provinciaDestino ?? ''}'.trim(),
+                        'PARA:',
                         style: pw.TextStyle(
-                          fontSize: 9,
+                          fontSize: 8,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        widget.orden.receptor.toUpperCase(),
+                        style: pw.TextStyle(
+                          fontSize: 11,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                      ),
+                      if (widget.orden.telefonoDestinatario != null) ...[
+                        pw.SizedBox(height: 2),
+                        pw.Text(
+                          'Tel: ${widget.orden.telefonoDestinatario}',
+                          style: const pw.TextStyle(fontSize: 9),
+                        ),
+                      ],
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        widget.orden.direccionDestino,
+                        style: const pw.TextStyle(fontSize: 9),
+                        maxLines: 2,
+                      ),
+                      if (widget.orden.ciudadDestino != null || widget.orden.provinciaDestino != null) ...[
+                        pw.SizedBox(height: 2),
+                        pw.Text(
+                          '${widget.orden.ciudadDestino ?? ''} ${widget.orden.provinciaDestino ?? ''}'.trim(),
+                          style: pw.TextStyle(
+                            fontSize: 9,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
+              
+              if (_incluirDatosDestinatario)
+                pw.SizedBox(height: 6),
               
               pw.SizedBox(height: 6),
               
@@ -528,7 +611,7 @@ class OrdenPrintModal extends StatelessWidget {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      'DE: ${orden.emisor}',
+                      'DE: ${widget.orden.emisor}',
                       style: const pw.TextStyle(fontSize: 8),
                     ),
                   ],
@@ -541,7 +624,7 @@ class OrdenPrintModal extends StatelessWidget {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
                 children: [
-                  if (orden.cantidadBultos != null)
+                  if (widget.orden.cantidadBultos != null)
                     pw.Column(
                       children: [
                         pw.Text(
@@ -549,7 +632,7 @@ class OrdenPrintModal extends StatelessWidget {
                           style: const pw.TextStyle(fontSize: 7),
                         ),
                         pw.Text(
-                          '${orden.cantidadBultos}',
+                          '${widget.orden.cantidadBultos}',
                           style: pw.TextStyle(
                             fontSize: 14,
                             fontWeight: pw.FontWeight.bold,
@@ -557,7 +640,7 @@ class OrdenPrintModal extends StatelessWidget {
                         ),
                       ],
                     ),
-                  if (orden.peso != null)
+                  if (widget.orden.peso != null)
                     pw.Column(
                       children: [
                         pw.Text(
@@ -565,7 +648,7 @@ class OrdenPrintModal extends StatelessWidget {
                           style: const pw.TextStyle(fontSize: 7),
                         ),
                         pw.Text(
-                          '${orden.peso} lb',
+                          '${widget.orden.peso} lb',
                           style: pw.TextStyle(
                             fontSize: 14,
                             fontWeight: pw.FontWeight.bold,
@@ -580,7 +663,7 @@ class OrdenPrintModal extends StatelessWidget {
                         style: const pw.TextStyle(fontSize: 7),
                       ),
                       pw.Text(
-                        orden.estado,
+                        widget.orden.estado,
                         style: pw.TextStyle(
                           fontSize: 10,
                           fontWeight: pw.FontWeight.bold,
@@ -594,14 +677,14 @@ class OrdenPrintModal extends StatelessWidget {
               pw.SizedBox(height: 6),
               
               // Fecha de entrega si existe
-              if (orden.fechaEntrega != null) ...[
+              if (widget.orden.fechaEntrega != null) ...[
                 pw.Container(
                   padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                   decoration: pw.BoxDecoration(
                     border: pw.Border.all(width: 1),
                   ),
                   child: pw.Text(
-                    'ENTREGAR: ${_formatFechaCorta(orden.fechaEntrega!)}',
+                    'ENTREGAR: ${_formatFechaCorta(widget.orden.fechaEntrega!)}',
                     style: pw.TextStyle(
                       fontSize: 9,
                       fontWeight: pw.FontWeight.bold,
@@ -630,7 +713,7 @@ class OrdenPrintModal extends StatelessWidget {
     try {
       // Generar QR como imagen para PDF
       final qrValidationResult = QrValidator.validate(
-        data: orden.id,
+        data: widget.orden.id,
         version: QrVersions.auto,
         errorCorrectionLevel: QrErrorCorrectLevel.L,
       );
