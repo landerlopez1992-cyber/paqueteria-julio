@@ -23,11 +23,12 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
   bool _showCreateForm = false;
   Set<String> _selectedEmisores = {}; // IDs de emisores seleccionados (UUID)
   bool _selectAll = false; // Estado del checkbox "seleccionar todos"
+  String? _currentTenantId; // Tenant ID del admin actual
 
   @override
   void initState() {
     super.initState();
-    _loadEmisores();
+    _loadCurrentTenantId();
     _searchController.addListener(_filterEmisores);
   }
 
@@ -42,15 +43,47 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
     super.dispose();
   }
 
+  Future<void> _loadCurrentTenantId() async {
+    try {
+      final currentUser = supabase.auth.currentUser;
+      if (currentUser != null) {
+        final userData = await supabase
+            .from('usuarios')
+            .select('tenant_id')
+            .eq('auth_id', currentUser.id)
+            .single();
+        
+        setState(() {
+          _currentTenantId = userData['tenant_id'];
+        });
+        
+        print('🏢 Tenant ID del admin actual: $_currentTenantId');
+        
+        // Cargar emisores después de obtener el tenant_id
+        _loadEmisores();
+      }
+    } catch (e) {
+      print('❌ Error obteniendo tenant_id: $e');
+      _showErrorDialog('Error al cargar información de la empresa');
+    }
+  }
+
   Future<void> _loadEmisores() async {
+    if (_currentTenantId == null) {
+      print('❌ No se puede cargar emisores: tenant_id es null');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
+      print('📊 Cargando emisores para tenant_id: $_currentTenantId');
       final response = await supabase
           .from('emisores')
           .select('*')
+          .eq('tenant_id', _currentTenantId!) // FILTRAR POR TENANT
           .order('created_at', ascending: false);
 
       setState(() {
@@ -58,6 +91,8 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
         _emisoresFiltrados = _emisores;
         _isLoading = false;
       });
+      
+      print('✅ Emisores cargados: ${_emisores.length}');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -94,17 +129,24 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
       return;
     }
 
+    if (_currentTenantId == null) {
+      _showErrorDialog('Error: No se pudo identificar la empresa');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
+      print('👤 Creando emisor para tenant_id: $_currentTenantId');
       await supabase.from('emisores').insert({
         'nombre': _nombreController.text.trim(),
         'email': _emailController.text.trim(),
         'telefono': _telefonoController.text.trim().isEmpty ? null : _telefonoController.text.trim(),
         'direccion': _direccionController.text.trim().isEmpty ? null : _direccionController.text.trim(),
         'empresa': _empresaController.text.trim().isEmpty ? null : _empresaController.text.trim(),
+        'tenant_id': _currentTenantId, // ASIGNAR TENANT_ID
       });
 
       // Limpiar formulario
@@ -121,6 +163,7 @@ class _EmisoresScreenState extends State<EmisoresScreen> {
       // Recargar lista
       await _loadEmisores();
       
+      print('✅ Emisor creado exitosamente para esta empresa');
       _showSuccessDialog('Emisor creado exitosamente');
     } catch (e) {
       setState(() {

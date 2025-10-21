@@ -28,12 +28,12 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
   // Lista de órdenes cargadas desde Supabase
   List<Orden> _ordenes = [];
   List<Map<String, dynamic>> _repartidores = [];
+  String? _currentTenantId; // Tenant ID del admin actual
 
   @override
   void initState() {
     super.initState();
-    _cargarOrdenes();
-    _cargarRepartidores();
+    _loadCurrentTenantId();
     _searchController.addListener(() {
       setState(() {
         // Actualizar la UI cuando cambie el texto de búsqueda
@@ -48,18 +48,49 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
   }
 
   // Cargar órdenes desde Supabase
+  Future<void> _loadCurrentTenantId() async {
+    try {
+      final currentUser = supabase.auth.currentUser;
+      if (currentUser != null) {
+        final userData = await supabase
+            .from('usuarios')
+            .select('tenant_id')
+            .eq('auth_id', currentUser.id)
+            .single();
+        
+        setState(() {
+          _currentTenantId = userData['tenant_id'];
+        });
+        
+        print('🏢 Tenant ID del admin actual: $_currentTenantId');
+        
+        // Cargar órdenes y repartidores después de obtener el tenant_id
+        _cargarOrdenes();
+        _cargarRepartidores();
+      }
+    } catch (e) {
+      print('❌ Error obteniendo tenant_id: $e');
+      _mostrarMensaje('Error al cargar información de la empresa');
+    }
+  }
+
   Future<void> _cargarOrdenes() async {
+    if (_currentTenantId == null) {
+      print('❌ No se puede cargar órdenes: tenant_id es null');
+      return;
+    }
+
     try {
       setState(() {
         _isLoading = true;
       });
 
-      // Cargar órdenes con ordenamiento por defecto (sin configuración por ahora)
-      // print('📋 Cargando órdenes con ordenamiento por defecto');
+      print('📋 Cargando órdenes para tenant_id: $_currentTenantId');
       
       final response = await supabase
           .from('ordenes')
           .select('*, destinatarios(provincia, municipio, consejo_popular_batey)')
+          .eq('tenant_id', _currentTenantId!) // FILTRAR POR TENANT
           .order('es_urgente', ascending: false)
           .order('fecha_creacion', ascending: false);
 
@@ -73,9 +104,9 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
       // Verificar y actualizar órdenes atrasadas automáticamente
       await _actualizarOrdenesAtrasadas();
 
-      // print('✅ Órdenes cargadas desde Supabase: ${_ordenes.length}');
+      print('✅ Órdenes cargadas: ${_ordenes.length}');
     } catch (e) {
-      // print('❌ Error al cargar órdenes: $e');
+      print('❌ Error al cargar órdenes: $e');
       setState(() {
         _isLoading = false;
       });
@@ -124,11 +155,17 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
 
   // Cargar repartidores reales desde Supabase
   Future<void> _cargarRepartidores() async {
+    if (_currentTenantId == null) {
+      print('❌ No se puede cargar repartidores: tenant_id es null');
+      return;
+    }
+
     try {
-      // print('=== INICIANDO CARGA DE REPARTIDORES ===');
+      print('📊 Cargando repartidores para tenant_id: $_currentTenantId');
       final response = await supabase
           .from('usuarios')
-          .select('id, nombre, email, rol');
+          .select('id, nombre, email, rol')
+          .eq('tenant_id', _currentTenantId!); // FILTRAR POR TENANT
 
       // print('Respuesta completa de usuarios: $response');
       // print('Tipo de respuesta: ${response.runtimeType}');

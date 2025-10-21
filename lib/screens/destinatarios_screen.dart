@@ -34,6 +34,7 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
   // Variables para selección múltiple
   Set<String> _selectedDestinatarios = {}; // IDs de destinatarios seleccionados (UUID)
   bool _selectAll = false; // Estado del checkbox "seleccionar todos"
+  String? _currentTenantId; // Tenant ID del admin actual
 
   // Validación en vivo de teléfono Cuba
   bool _isPhoneValidLive = false;
@@ -49,7 +50,7 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDestinatarios();
+    _loadCurrentTenantId();
     _searchController.addListener(_filterDestinatarios);
   }
 
@@ -66,22 +67,56 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
     super.dispose();
   }
 
+  Future<void> _loadCurrentTenantId() async {
+    try {
+      final currentUser = supabase.auth.currentUser;
+      if (currentUser != null) {
+        final userData = await supabase
+            .from('usuarios')
+            .select('tenant_id')
+            .eq('auth_id', currentUser.id)
+            .single();
+        
+        setState(() {
+          _currentTenantId = userData['tenant_id'];
+        });
+        
+        print('🏢 Tenant ID del admin actual: $_currentTenantId');
+        
+        // Cargar destinatarios después de obtener el tenant_id
+        _loadDestinatarios();
+      }
+    } catch (e) {
+      print('❌ Error obteniendo tenant_id: $e');
+      _showErrorDialog('Error al cargar información de la empresa');
+    }
+  }
+
   Future<void> _loadDestinatarios() async {
+    if (_currentTenantId == null) {
+      print('❌ No se puede cargar destinatarios: tenant_id es null');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-        try {
-          final response = await supabase
-              .from('destinatarios')
-              .select('id, nombre, email, telefono, direccion, municipio, provincia, consejo_popular_batey, empresa, notas, created_at')
-              .order('created_at', ascending: false);
+    try {
+      print('📊 Cargando destinatarios para tenant_id: $_currentTenantId');
+      final response = await supabase
+          .from('destinatarios')
+          .select('id, nombre, email, telefono, direccion, municipio, provincia, consejo_popular_batey, empresa, notas, created_at')
+          .eq('tenant_id', _currentTenantId!) // FILTRAR POR TENANT
+          .order('created_at', ascending: false);
 
       setState(() {
         _destinatarios = List<Map<String, dynamic>>.from(response);
         _filterDestinatarios(); // Apply filter after loading
         _isLoading = false;
       });
+      
+      print('✅ Destinatarios cargados: ${_destinatarios.length}');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -141,11 +176,17 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
       return;
     }
 
+    if (_currentTenantId == null) {
+      _showErrorDialog('Error: No se pudo identificar la empresa');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
+      print('👤 Creando destinatario para tenant_id: $_currentTenantId');
       await supabase.from('destinatarios').insert({
         'nombre': _nombreController.text.trim(),
         'email': _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
@@ -156,6 +197,7 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
         'consejo_popular_batey': _consejoPopularBateyController.text.trim().isEmpty ? null : _consejoPopularBateyController.text.trim(),
         'empresa': _empresaController.text.trim().isEmpty ? null : _empresaController.text.trim(),
         'notas': _notasController.text.trim().isEmpty ? null : _notasController.text.trim(),
+        'tenant_id': _currentTenantId, // ASIGNAR TENANT_ID
       });
 
       // Limpiar formulario
@@ -166,6 +208,8 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
       });
 
       await _loadDestinatarios();
+      
+      print('✅ Destinatario creado exitosamente para esta empresa');
       _showSuccessDialog('Destinatario creado exitosamente');
     } catch (e) {
       setState(() {

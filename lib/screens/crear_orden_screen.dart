@@ -28,6 +28,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
   List<Map<String, dynamic>> _emisores = [];
   List<Map<String, dynamic>> _destinatarios = [];
   List<Map<String, dynamic>> _repartidores = [];
+  String? _currentTenantId; // Tenant ID del admin actual
   List<Map<String, dynamic>> _emisoresFiltrados = [];
   List<Map<String, dynamic>> _destinatariosFiltrados = [];
   
@@ -51,7 +52,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarDatos();
+    _loadCurrentTenantId();
     _searchEmisorController.addListener(_filtrarEmisores);
     _searchDestinatarioController.addListener(_filtrarDestinatarios);
   }
@@ -70,16 +71,49 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
     super.dispose();
   }
 
+  Future<void> _loadCurrentTenantId() async {
+    try {
+      final currentUser = supabase.auth.currentUser;
+      if (currentUser != null) {
+        final userData = await supabase
+            .from('usuarios')
+            .select('tenant_id')
+            .eq('auth_id', currentUser.id)
+            .single();
+        
+        setState(() {
+          _currentTenantId = userData['tenant_id'];
+        });
+        
+        print('🏢 Tenant ID del admin actual: $_currentTenantId');
+        
+        // Cargar datos después de obtener el tenant_id
+        _cargarDatos();
+      }
+    } catch (e) {
+      print('❌ Error obteniendo tenant_id: $e');
+      _mostrarMensaje('Error al cargar información de la empresa');
+    }
+  }
+
   Future<void> _cargarDatos() async {
+    if (_currentTenantId == null) {
+      print('❌ No se puede cargar datos: tenant_id es null');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
+      print('📊 Cargando datos para tenant_id: $_currentTenantId');
+      
       // Cargar emisores
       final emisoresResponse = await supabase
           .from('emisores')
           .select('*')
+          .eq('tenant_id', _currentTenantId!) // FILTRAR POR TENANT
           .order('nombre');
       _emisores = List<Map<String, dynamic>>.from(emisoresResponse);
       _emisoresFiltrados = _emisores;
@@ -88,6 +122,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
       final destinatariosResponse = await supabase
           .from('destinatarios')
           .select('*')
+          .eq('tenant_id', _currentTenantId!) // FILTRAR POR TENANT
           .order('nombre');
       _destinatarios = List<Map<String, dynamic>>.from(destinatariosResponse);
       _destinatariosFiltrados = _destinatarios;
@@ -97,6 +132,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
           .from('usuarios')
           .select('id, nombre, email, rol, provincias_asignadas, tipo_vehiculo')
           .eq('rol', 'REPARTIDOR')
+          .eq('tenant_id', _currentTenantId!) // FILTRAR POR TENANT
           .order('nombre');
       _repartidores = List<Map<String, dynamic>>.from(repartidoresResponse);
 
@@ -248,6 +284,7 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
       }
 
       // Insertar la orden (el número se generará automáticamente por el trigger)
+      print('📦 Creando orden para tenant_id: $_currentTenantId');
       final response = await supabase.from('ordenes').insert({
         'emisor_nombre': _emisorSeleccionado!['nombre'],
         'destinatario_nombre': _destinatarioSeleccionado!['nombre'],
@@ -274,9 +311,11 @@ class _CrearOrdenScreenState extends State<CrearOrdenScreen> {
         'moneda': _moneda,
         'pagado': false,
         'notas_pago': _notasPagoController.text.trim().isEmpty ? null : _notasPagoController.text.trim(),
+        'tenant_id': _currentTenantId, // ASIGNAR TENANT_ID
       }).select('numero_orden').single();
 
       final numeroOrden = response['numero_orden'] ?? 'N/A';
+      print('✅ Orden #$numeroOrden creada exitosamente para esta empresa');
       final mensaje = repartidorNombre != null 
           ? 'Orden #$numeroOrden creada exitosamente. Repartidor asignado: $repartidorNombre'
           : 'Orden #$numeroOrden creada exitosamente. Sin repartidor asignado.';
