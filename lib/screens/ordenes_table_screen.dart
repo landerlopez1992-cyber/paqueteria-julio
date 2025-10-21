@@ -59,7 +59,7 @@ class _OrdenesTableScreenState extends State<OrdenesTableScreen> {
       
       final response = await supabase
           .from('ordenes')
-          .select()
+          .select('*, destinatarios(provincia, municipio, consejo_popular_batey)')
           .order('es_urgente', ascending: false)
           .order('fecha_creacion', ascending: false);
 

@@ -30,6 +30,10 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
   String _municipioSeleccionado = '';
   List<String> _municipiosDisponibles = [];
 
+  // Variables para selección múltiple
+  Set<String> _selectedDestinatarios = {}; // IDs de destinatarios seleccionados (UUID)
+  bool _selectAll = false; // Estado del checkbox "seleccionar todos"
+
   @override
   void initState() {
     super.initState();
@@ -182,6 +186,87 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
     }
   }
 
+  // Función para seleccionar/deseleccionar todos
+  void _toggleSelectAll(bool? value) {
+    setState(() {
+      _selectAll = value ?? false;
+      if (_selectAll) {
+        _selectedDestinatarios = _destinatariosFiltrados.map((e) => e['id'].toString()).toSet();
+      } else {
+        _selectedDestinatarios.clear();
+      }
+    });
+  }
+
+  // Función para seleccionar/deseleccionar un destinatario individual
+  void _toggleSelectDestinatario(String id) {
+    setState(() {
+      if (_selectedDestinatarios.contains(id)) {
+        _selectedDestinatarios.remove(id);
+        _selectAll = false;
+      } else {
+        _selectedDestinatarios.add(id);
+        if (_selectedDestinatarios.length == _destinatariosFiltrados.length) {
+          _selectAll = true;
+        }
+      }
+    });
+  }
+
+  // Función para eliminar destinatarios seleccionados
+  Future<void> _deleteSelectedDestinatarios() async {
+    if (_selectedDestinatarios.isEmpty) {
+      _showErrorDialog('No hay destinatarios seleccionados');
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Eliminación'),
+        content: Text('¿Estás seguro de que quieres eliminar ${_selectedDestinatarios.length} destinatario(s)?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFDC2626)),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        // Eliminar cada destinatario seleccionado
+        for (final id in _selectedDestinatarios) {
+          await supabase
+              .from('destinatarios')
+              .delete()
+              .eq('id', id);
+        }
+
+        _selectedDestinatarios.clear();
+        _selectAll = false;
+        await _loadDestinatarios();
+        _showSuccessDialog('Destinatarios eliminados exitosamente');
+      } catch (e) {
+        _showErrorDialog('Error al eliminar destinatarios: ${e.toString()}');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -242,27 +327,66 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Gestión de Destinatarios',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C2C2C),
-                  ),
+                Row(
+                  children: [
+                    const Text(
+                      'Gestión de Destinatarios',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2C2C2C),
+                      ),
+                    ),
+                    if (_selectedDestinatarios.isNotEmpty) ...[
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4CAF50),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${_selectedDestinatarios.length} seleccionado(s)',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _showCreateForm = !_showCreateForm;
-                    });
-                  },
-                  icon: const Icon(Icons.add, size: 18),
-                  label: Text(_showCreateForm ? 'Cancelar' : 'Crear Destinatario'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF9800),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
+                Row(
+                  children: [
+                    if (_selectedDestinatarios.isNotEmpty) ...[
+                      ElevatedButton.icon(
+                        onPressed: _deleteSelectedDestinatarios,
+                        icon: const Icon(Icons.delete, size: 18),
+                        label: const Text('Eliminar seleccionados'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFDC2626),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _showCreateForm = !_showCreateForm;
+                        });
+                      },
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(_showCreateForm ? 'Cancelar' : 'Crear Destinatario'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF9800),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -611,8 +735,15 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
                           child: DataTable(
                             columnSpacing: 20,
                             headingRowColor: MaterialStateProperty.all(const Color(0xFFF5F5F5)),
-                            columns: const [
+                            columns: [
                               DataColumn(
+                                label: Checkbox(
+                                  value: _selectAll,
+                                  onChanged: _toggleSelectAll,
+                                  activeColor: const Color(0xFF4CAF50),
+                                ),
+                              ),
+                              const DataColumn(
                                 label: Text(
                                   'ID',
                                   style: TextStyle(
@@ -706,20 +837,16 @@ class _DestinatariosScreenState extends State<DestinatariosScreen> {
                             rows: _destinatariosFiltrados.asMap().entries.map((entry) {
                               final index = entry.key;
                               final destinatario = entry.value;
+                              final destinatarioId = destinatario['id'].toString(); // UUID es String
                               return DataRow(
-                                onSelectChanged: (selected) async {
-                                  if (selected == true) {
-                                    await Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => DetalleDestinatarioScreen(
-                                          destinatario: destinatario,
-                                        ),
-                                      ),
-                                    );
-                                    _loadDestinatarios();
-                                  }
-                                },
                                 cells: [
+                                  DataCell(
+                                    Checkbox(
+                                      value: _selectedDestinatarios.contains(destinatarioId),
+                                      onChanged: (value) => _toggleSelectDestinatario(destinatarioId),
+                                      activeColor: const Color(0xFF4CAF50),
+                                    ),
+                                  ),
                                   DataCell(
                                     SizedBox(
                                       width: 40,
