@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../main.dart';
 import '../config/app_colors.dart';
+import 'login_supabase_screen.dart';
 
 class RepartidorPerfilScreen extends StatefulWidget {
   const RepartidorPerfilScreen({super.key});
@@ -633,7 +634,12 @@ class _RepartidorPerfilScreenState extends State<RepartidorPerfilScreen> {
         print('🚪 Cerrando sesión...');
         await supabase.auth.signOut();
         if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const LoginSupabaseScreen(),
+            ),
+            (route) => false,
+          );
         }
       } catch (e) {
         print('❌ Error al cerrar sesión: $e');

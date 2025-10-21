@@ -562,15 +562,23 @@ class _SharedLayoutState extends State<SharedLayout> {
     if (confirm != true) return;
 
     try {
+      print('🚪 Cerrando sesión desde Admin...');
       await supabase.auth.signOut();
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginSupabaseScreen()),
-          (route) => false,
-        );
-      }
+      print('✅ Sesión cerrada, navegando...');
+      
+      if (!mounted) return;
+      
+      // Usar Navigator con popUntil primero
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      
+      // Luego reemplazar con login
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const LoginSupabaseScreen(),
+        ),
+      );
     } catch (e) {
-      print('Error al cerrar sesión: $e');
+      print('❌ Error al cerrar sesión: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

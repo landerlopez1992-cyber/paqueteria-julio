@@ -54,11 +54,17 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String? userEmail = userData['email'];
             
             // Acceso directo al Panel Super-Admin por email especial (solo web)
+            // SOLO admin@administrador.com es Super-Admin
             final adminEmails = {
               'admin@administrador.com',
-              'admin@paqueteria.com',
             };
+            print('🔍 DEBUG Super-Admin:');
+            print('  - userEmail: $userEmail');
+            print('  - kIsWeb: $kIsWeb');
+            print('  - adminEmails.contains: ${adminEmails.contains((userEmail ?? '').toLowerCase())}');
+            
             if (kIsWeb && adminEmails.contains((userEmail ?? '').toLowerCase())) {
+              print('✅ REDIRIGIENDO A SUPER-ADMIN DASHBOARD');
               if (mounted) {
                 Future.microtask(() {
                   if (mounted) {
@@ -154,11 +160,17 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String userName = userData['nombre'] ?? 'Usuario';
             
             // Acceso directo al Panel Super-Admin por email especial (solo web)
+            // SOLO admin@administrador.com es Super-Admin
             final adminEmails2 = {
               'admin@administrador.com',
-              'admin@paqueteria.com',
             };
+            print('🔍 DEBUG Super-Admin (RUTA 2):');
+            print('  - userEmail: $userEmail');
+            print('  - kIsWeb: $kIsWeb');
+            print('  - adminEmails2.contains: ${adminEmails2.contains(userEmail.toLowerCase())}');
+            
             if (kIsWeb && adminEmails2.contains(userEmail.toLowerCase())) {
+              print('✅ REDIRIGIENDO A SUPER-ADMIN DASHBOARD (RUTA 2)');
               if (mounted) {
                 Future.microtask(() {
                   if (mounted) {
@@ -227,9 +239,9 @@ class _LoginSupabaseScreenState extends State<LoginSupabaseScreen> {
             String email = response.user!.email ?? '';
             
             // Acceso directo al Panel Super-Admin por email especial (solo web)
+            // SOLO admin@administrador.com es Super-Admin
             final adminEmails3 = {
               'admin@administrador.com',
-              'admin@paqueteria.com',
             };
             if (kIsWeb && adminEmails3.contains(email.toLowerCase())) {
               if (mounted) {
