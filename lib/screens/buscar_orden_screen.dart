@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import 'package:flutter/foundation.dart';
 import '../main.dart';
 import '../widgets/shared_layout.dart';
 
@@ -374,7 +373,7 @@ class _PantallaCargaBusquedaState extends State<PantallaCargaBusqueda> {
 }
 
 // Pantalla de resultados centrada
-class ResultadosBusquedaScreen extends StatelessWidget {
+class ResultadosBusquedaScreen extends StatefulWidget {
   final List<Map<String, dynamic>> resultados;
   final String numeroOrden;
   final String? provincia;
@@ -385,6 +384,48 @@ class ResultadosBusquedaScreen extends StatelessWidget {
     required this.numeroOrden,
     this.provincia,
   });
+
+  @override
+  State<ResultadosBusquedaScreen> createState() => _ResultadosBusquedaScreenState();
+}
+
+class _ResultadosBusquedaScreenState extends State<ResultadosBusquedaScreen> {
+  String? _telefonoEmpresa;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarTelefonoEmpresa();
+  }
+
+  Future<void> _cargarTelefonoEmpresa() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user != null) {
+        final userData = await supabase
+            .from('usuarios')
+            .select('tenant_id')
+            .eq('auth_id', user.id)
+            .single();
+        
+        String? tenantId = userData['tenant_id'];
+        
+        if (tenantId != null) {
+          final empresaData = await supabase
+              .from('tenants')
+              .select('telefono')
+              .eq('id', tenantId)
+              .single();
+          
+          setState(() {
+            _telefonoEmpresa = empresaData['telefono'];
+          });
+        }
+      }
+    } catch (e) {
+      print('Error cargando teléfono de la empresa: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -433,26 +474,26 @@ class ResultadosBusquedaScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            if (numeroOrden.isNotEmpty) ...[
+                            if (widget.numeroOrden.isNotEmpty) ...[
                               Row(
                                 children: [
                                   const Icon(Icons.numbers, size: 16, color: Color(0xFF666666)),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Número de Orden: $numeroOrden',
+                                    'Número de Orden: ${widget.numeroOrden}',
                                     style: const TextStyle(color: Color(0xFF666666)),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 8),
                             ],
-                            if (provincia != null) ...[
+                            if (widget.provincia != null) ...[
                               Row(
                                 children: [
                                   const Icon(Icons.place, size: 16, color: Color(0xFF666666)),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Provincia: $provincia',
+                                    'Provincia: ${widget.provincia}',
                                     style: const TextStyle(color: Color(0xFF666666)),
                                   ),
                                 ],
@@ -465,7 +506,7 @@ class ResultadosBusquedaScreen extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // Resultados
-                    if (resultados.isEmpty) ...[
+                    if (widget.resultados.isEmpty) ...[
                       Card(
                         color: const Color(0xFFFFFFFF),
                         elevation: 2,
@@ -504,7 +545,7 @@ class ResultadosBusquedaScreen extends StatelessWidget {
                         ),
                       ),
                     ] else ...[
-                      ...(resultados.map((orden) => _buildResultadoCard(context, orden))),
+                      ...(widget.resultados.map((orden) => _buildResultadoCard(context, orden))),
                     ],
                   ],
                 ),
@@ -838,8 +879,8 @@ class ResultadosBusquedaScreen extends StatelessWidget {
   }
 
   String _getTelefonoAgencia() {
-    // Número de teléfono de la agencia - puedes cambiarlo por el real
-    return '+1 (305) 123-4567';
+    // Usar el teléfono de la empresa logueada
+    return _telefonoEmpresa ?? '+1 (305) 123-4567';
   }
 
   Widget _getIconoPaso(String nombrePaso, bool isCompletado, bool isActual, bool isEspecial) {
@@ -1012,17 +1053,8 @@ class ResultadosBusquedaScreen extends StatelessWidget {
   }
 
   Future<void> _descargarImagen(String url) async {
-    // En web: usar ancla para descargar; en móviles: abrir en navegador/sistema
-    try {
-      // ignore: undefined_prefixed_name
-      html.AnchorElement(href: url)
-        ..download = 'foto_entrega.jpg'
-        ..target = '_blank'
-        ..click();
-    } catch (_) {
-      // Fallback: abrir URL
-      // ignore: deprecated_member_use
-      await launch(url);
-    }
+    // En móvil: abrir URL directamente
+    // ignore: deprecated_member_use
+    await launch(url);
   }
 }
