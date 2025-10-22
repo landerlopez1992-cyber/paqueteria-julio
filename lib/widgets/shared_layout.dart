@@ -355,12 +355,25 @@ class _SharedLayoutState extends State<SharedLayout> {
                                   width: 45,
                                   height: 45,
                                   fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress.expectedTotalBytes != null
+                                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                            : null,
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    );
+                                  },
                                   errorBuilder: (context, error, stackTrace) {
+                                    print('❌ Error cargando logo de empresa: $error');
                                     return Center(
                                       child: Text(
                                         _empresaNombre != null && _empresaNombre!.isNotEmpty
                                             ? _empresaNombre![0].toUpperCase()
-                                            : 'E',
+                                            : 'J',
                                         style: const TextStyle(
                                           color: Color(0xFFFFFFFF),
                                           fontSize: 20,
@@ -374,7 +387,7 @@ class _SharedLayoutState extends State<SharedLayout> {
                                   child: Text(
                                     _empresaNombre != null && _empresaNombre!.isNotEmpty
                                         ? _empresaNombre![0].toUpperCase()
-                                        : 'E',
+                                        : 'J',
                                     style: const TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 20,
