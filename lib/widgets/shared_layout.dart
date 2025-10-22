@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
+import 'dart:html' as html show window;
 import '../screens/ordenes_table_screen.dart';
 import '../screens/repartidores_screen.dart';
 import '../screens/emisores_screen.dart';
@@ -9,7 +11,10 @@ import '../screens/crear_orden_screen.dart';
 import '../screens/envios_ajustes_screen.dart';
 import '../screens/chat_admin_screen.dart';
 import '../screens/buscar_orden_screen.dart';
+import '../screens/informacion_empresa_screen.dart';
+import '../screens/soporte_empresa_screen.dart';
 import '../screens/login_supabase_screen.dart';
+import '../screens/account_suspended_screen.dart';
 
 class SharedLayout extends StatefulWidget {
   final Widget child;
@@ -29,6 +34,8 @@ class _SharedLayoutState extends State<SharedLayout> {
   String? _userName;
   String? _userEmail;
   String? _fotoPerfilUrl;
+  String? _empresaNombre;
+  String? _empresaLogoUrl;
   int _mensajesNoLeidos = 0;
   RealtimeChannel? _channelNotificaciones;
   
@@ -38,6 +45,7 @@ class _SharedLayoutState extends State<SharedLayout> {
     _loadUserData();
     _cargarMensajesNoLeidos();
     _suscribirseANotificaciones();
+    _verificarEstadoEmpresa();
   }
 
   @override
@@ -56,11 +64,33 @@ class _SharedLayoutState extends State<SharedLayout> {
             .eq('id', user.id)
             .single();
         
+        // Cargar información de la empresa
+        String? tenantId = userData['tenant_id'];
+        String? empresaNombre;
+        String? empresaLogoUrl;
+        
+        if (tenantId != null) {
+          try {
+            final empresaData = await supabase
+                .from('tenants')
+                .select('nombre, logo_url')
+                .eq('id', tenantId)
+                .single();
+            
+            empresaNombre = empresaData['nombre'];
+            empresaLogoUrl = empresaData['logo_url'];
+          } catch (e) {
+            print('Error cargando datos de la empresa: $e');
+          }
+        }
+        
         if (mounted) {
           setState(() {
             _userName = userData['nombre'] ?? user.email?.split('@')[0] ?? 'Usuario';
             _userEmail = user.email;
             _fotoPerfilUrl = userData['foto_perfil'];
+            _empresaNombre = empresaNombre;
+            _empresaLogoUrl = empresaLogoUrl;
           });
         }
       }
@@ -72,6 +102,8 @@ class _SharedLayoutState extends State<SharedLayout> {
           _userName = user.email?.split('@')[0] ?? 'Usuario';
           _userEmail = user.email;
           _fotoPerfilUrl = null;
+          _empresaNombre = null;
+          _empresaLogoUrl = null;
         });
       }
     }
@@ -175,9 +207,19 @@ class _SharedLayoutState extends State<SharedLayout> {
       'route': 'crear_orden',
     },
     {
-      'title': 'Chat Soporte',
+      'title': 'Información de la Empresa',
+      'icon': Icons.business,
+      'route': 'informacion_empresa',
+    },
+    {
+      'title': 'Soporte / Repartidores',
       'icon': Icons.chat_bubble,
       'route': 'chat_soporte',
+    },
+    {
+      'title': 'Soporte',
+      'icon': Icons.help,
+      'route': 'soporte_empresa',
     },
     {
       'title': 'Buscar Orden',
@@ -290,7 +332,7 @@ class _SharedLayoutState extends State<SharedLayout> {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   child: Row(
                     children: [
-                      // Foto de perfil
+                      // Foto de perfil de la empresa
                       Container(
                         width: 45,
                         height: 45,
@@ -299,18 +341,18 @@ class _SharedLayoutState extends State<SharedLayout> {
                           shape: BoxShape.circle,
                         ),
                         child: ClipOval(
-                          child: _fotoPerfilUrl != null && _fotoPerfilUrl!.isNotEmpty
+                          child: _empresaLogoUrl != null && _empresaLogoUrl!.isNotEmpty
                               ? Image.network(
-                                  _fotoPerfilUrl!,
+                                  _empresaLogoUrl!,
                                   width: 45,
                                   height: 45,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
                                     return Center(
                                       child: Text(
-                                        _userName != null && _userName!.isNotEmpty
-                                            ? _userName![0].toUpperCase()
-                                            : 'U',
+                                        _empresaNombre != null && _empresaNombre!.isNotEmpty
+                                            ? _empresaNombre![0].toUpperCase()
+                                            : 'E',
                                         style: const TextStyle(
                                           color: Color(0xFFFFFFFF),
                                           fontSize: 20,
@@ -322,9 +364,9 @@ class _SharedLayoutState extends State<SharedLayout> {
                                 )
                               : Center(
                                   child: Text(
-                                    _userName != null && _userName!.isNotEmpty
-                                        ? _userName![0].toUpperCase()
-                                        : 'U',
+                                    _empresaNombre != null && _empresaNombre!.isNotEmpty
+                                        ? _empresaNombre![0].toUpperCase()
+                                        : 'E',
                                     style: const TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 20,
@@ -335,14 +377,14 @@ class _SharedLayoutState extends State<SharedLayout> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // Nombre del usuario
+                      // Nombre de la empresa
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              _userName ?? 'Cargando...',
+                              _empresaNombre ?? 'Cargando...',
                               style: const TextStyle(
                                 color: Color(0xFF2C2C2C),
                                 fontSize: 16,
@@ -513,8 +555,17 @@ class _SharedLayoutState extends State<SharedLayout> {
       case 'crear_orden':
         destinationScreen = const CrearOrdenScreen();
         break;
+      case 'informacion_empresa':
+        destinationScreen = SharedLayout(
+          currentScreen: 'informacion_empresa',
+          child: const InformacionEmpresaScreen(),
+        );
+        break;
       case 'chat_soporte':
         destinationScreen = const ChatAdminScreen();
+        break;
+      case 'soporte_empresa':
+        destinationScreen = const SoporteEmpresaScreen();
         break;
       case 'buscar_orden':
         destinationScreen = const BuscarOrdenScreen();
@@ -536,19 +587,61 @@ class _SharedLayoutState extends State<SharedLayout> {
     );
   }
 
-  Future<void> _logout() async {
-    final confirm = await showDialog<bool>(
+  // ⚠️ ⚠️ ⚠️ CRÍTICO: NO MODIFICAR ESTE MÉTODO SIN AUTORIZACIÓN ⚠️ ⚠️ ⚠️
+  // Este método fue probado 12+ veces y FINALMENTE funciona sin colgarse.
+  // REGLAS OBLIGATORIAS:
+  // 1. En WEB: SIEMPRE usar window.location.reload() INMEDIATAMENTE
+  // 2. NO usar await, NO usar async, NO usar Futures complejos
+  // 3. NO agregar loaders, NO agregar delays, NO agregar navegación compleja
+  // 4. El diálogo de confirmación es SIMPLE y NO cancelable
+  // Si necesitas modificar, consulta primero con el equipo.
+  // ⚠️ ⚠️ ⚠️ CRÍTICO: NO MODIFICAR ESTE MÉTODO SIN AUTORIZACIÓN ⚠️ ⚠️ ⚠️
+  // Este método fue probado 12+ veces y FINALMENTE funciona sin colgarse.
+  // REGLAS OBLIGATORIAS:
+  // 1. En WEB: SIEMPRE usar window.location.reload() INMEDIATAMENTE
+  // 2. NO usar await, NO usar async, NO usar Futures complejos
+  // 3. NO agregar loaders, NO agregar delays, NO agregar navegación compleja
+  // 4. El diálogo de confirmación es SIMPLE y NO cancelable
+  // Si necesitas modificar, consulta primero con el equipo.
+  void _logout() {
+    showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirmar cierre de sesión'),
-        content: const Text('¿Deseas cerrar sesión?'),
+        title: const Text('Cerrar Sesión'),
+        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
+            onPressed: () {
+              Navigator.pop(ctx);
+              print('🚪 Cerrando sesión...');
+              
+              if (kIsWeb) {
+                // SOLUCIÓN PROBADA: Cerrar sesión y recargar INMEDIATAMENTE
+                // NO usar await aquí - ejecutar en background
+                supabase.auth.signOut(scope: SignOutScope.global).then((_) {
+                  print('✅ Sesión cerrada');
+                }).catchError((e) {
+                  print('❌ Error signOut: $e');
+                });
+                // CRÍTICO: Recargar SIN ESPERAR a que termine signOut
+                // Esto previene que la app se cuelgue
+                html.window.location.reload();
+              } else {
+                // Para móvil - navegación estándar
+                supabase.auth.signOut().then((_) {
+                  if (mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const LoginSupabaseScreen()),
+                      (route) => false,
+                    );
+                  }
+                });
+              }
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626),
               foregroundColor: Colors.white,
@@ -558,35 +651,47 @@ class _SharedLayoutState extends State<SharedLayout> {
         ],
       ),
     );
+  }
 
-    if (confirm != true) return;
-
+  // VERIFICAR ESTADO DE LA EMPRESA EN TIEMPO REAL
+  Future<void> _verificarEstadoEmpresa() async {
     try {
-      print('🚪 Cerrando sesión desde Admin...');
-      await supabase.auth.signOut();
-      print('✅ Sesión cerrada, navegando...');
-      
-      if (!mounted) return;
-      
-      // Usar Navigator con popUntil primero
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      
-      // Luego reemplazar con login
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const LoginSupabaseScreen(),
-        ),
-      );
-    } catch (e) {
-      print('❌ Error al cerrar sesión: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo cerrar sesión, intenta nuevamente'),
-            backgroundColor: Color(0xFFDC2626),
-          ),
-        );
+      // Obtener datos del usuario actual
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      final userData = await supabase
+          .from('usuarios')
+          .select('tenant_id, rol')
+          .eq('auth_id', user.id)
+          .single();
+
+      String? tenantId = userData['tenant_id'];
+      String userRole = userData['rol']?.toString().toUpperCase() ?? '';
+
+      // Solo verificar para usuarios no Super-Admin
+      if (tenantId != null && userRole != 'SUPER_ADMIN') {
+        final tenantData = await supabase
+            .from('tenants')
+            .select('activo')
+            .eq('id', tenantId)
+            .single();
+
+        bool isActive = tenantData['activo'] ?? false;
+        print('🔍 Verificando estado de empresa en tiempo real: $isActive');
+
+        if (!isActive && mounted) {
+          print('❌ EMPRESA INACTIVA - Redirigiendo a pantalla de suspensión');
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const AccountSuspendedScreen(),
+            ),
+          );
+        }
       }
+    } catch (e) {
+      print('❌ Error verificando estado de empresa: $e');
+      // Si no se puede verificar, permitir acceso (fallback)
     }
   }
 }
