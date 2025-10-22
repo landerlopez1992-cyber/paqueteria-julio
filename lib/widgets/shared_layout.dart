@@ -83,6 +83,13 @@ class _SharedLayoutState extends State<SharedLayout> {
             empresaNombre = empresaData['nombre'];
             empresaLogoUrl = empresaData['logo_url'];
             print('✅ Debug - Empresa cargada: $empresaNombre, Logo: $empresaLogoUrl');
+            
+            // Verificar si la URL del logo es válida
+            if (empresaLogoUrl != null && empresaLogoUrl!.isNotEmpty) {
+              print('🔗 Logo URL completa: $empresaLogoUrl');
+            } else {
+              print('❌ No hay logo URL disponible');
+            }
           } catch (e) {
             print('❌ Error cargando datos de la empresa: $e');
           }
