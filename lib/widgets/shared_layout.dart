@@ -61,13 +61,16 @@ class _SharedLayoutState extends State<SharedLayout> {
         final userData = await supabase
             .from('usuarios')
             .select()
-            .eq('id', user.id)
+            .eq('auth_id', user.id)
             .single();
         
         // Cargar información de la empresa
         String? tenantId = userData['tenant_id'];
         String? empresaNombre;
         String? empresaLogoUrl;
+        
+        print('🔍 Debug - User data: ${userData}');
+        print('🔍 Debug - Tenant ID: $tenantId');
         
         if (tenantId != null) {
           try {
@@ -79,9 +82,12 @@ class _SharedLayoutState extends State<SharedLayout> {
             
             empresaNombre = empresaData['nombre'];
             empresaLogoUrl = empresaData['logo_url'];
+            print('✅ Debug - Empresa cargada: $empresaNombre, Logo: $empresaLogoUrl');
           } catch (e) {
-            print('Error cargando datos de la empresa: $e');
+            print('❌ Error cargando datos de la empresa: $e');
           }
+        } else {
+          print('❌ No se encontró tenant_id en los datos del usuario');
         }
         
         if (mounted) {
@@ -89,7 +95,8 @@ class _SharedLayoutState extends State<SharedLayout> {
             _userName = userData['nombre'] ?? user.email?.split('@')[0] ?? 'Usuario';
             _userEmail = user.email;
             _fotoPerfilUrl = userData['foto_perfil'];
-            _empresaNombre = empresaNombre;
+            // Usar fallback si no se encuentra la empresa
+            _empresaNombre = empresaNombre ?? 'J Alvarez Express SVC';
             _empresaLogoUrl = empresaLogoUrl;
           });
         }
@@ -102,7 +109,8 @@ class _SharedLayoutState extends State<SharedLayout> {
           _userName = user.email?.split('@')[0] ?? 'Usuario';
           _userEmail = user.email;
           _fotoPerfilUrl = null;
-          _empresaNombre = null;
+          // Fallback al nombre de la empresa
+          _empresaNombre = 'J Alvarez Express SVC';
           _empresaLogoUrl = null;
         });
       }
