@@ -197,12 +197,12 @@ class _SharedLayoutState extends State<SharedLayout> {
       'route': 'envios',
     },
     {
-      'title': 'Destinatarios',
+      'title': 'Destinatario/Recive',
       'icon': Icons.person_outline,
       'route': 'destinatarios',
     },
     {
-      'title': 'Emisores',
+      'title': 'Emisores/Envia',
       'icon': Icons.person,
       'route': 'emisores',
     },
