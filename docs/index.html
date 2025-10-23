@@ -1,38 +1,919 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="/paqueteria-julio/">
-
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Sistema de Paquetería J Alvarez Express SVC - Gestión completa de envíos y repartidores">
-
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Paquetería J Alvarez">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>Paquetería J Alvarez Express SVC</title>
-  <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiFlow Pro - Software de Gestión Logística Profesional</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+    <!-- Header/Navigation -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <img src="assets/logo.png" alt="LogiFlow Pro" class="logo-img">
+                    <span class="logo-text">LogiFlow Pro</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#funcionalidades">Funcionalidades</a></li>
+                    <li><a href="#capturas">Capturas</a></li>
+                    <li><a href="#precios">Precios</a></li>
+                    <li><a href="#descargas">Descargas</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+                <div class="nav-buttons">
+                    <a id="login-link" href="#" class="btn btn-outline">Iniciar Sesión</a>
+                    <a href="#solicitar-cuenta" class="btn btn-primary">Solicitar Cuenta</a>
+                </div>
+                <div class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero">
+        <div class="hero-background">
+            <div class="hero-gradient"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <span class="hero-badge">🚀 Sistema de Gestión Logística Profesional</span>
+                    <h1 class="hero-title">
+                        Software de <span class="gradient-text">Marca Blanca</span><br>
+                        para Empresas de Logística
+                    </h1>
+                    <p class="hero-description">
+                        Sistema completo de gestión logística con tu marca. Tus clientes ven tu logo, 
+                        tu nombre y tu identidad. Administra órdenes, repartidores y rastreo desde tu propia plataforma.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#solicitar-cuenta" class="btn btn-large btn-primary">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"/>
+                            </svg>
+                            Prueba Gratis 1 Mes
+                        </a>
+                        <a href="#funcionalidades" class="btn btn-large btn-outline-white">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                            Ver Demo
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <div class="stat-number">1 Mes</div>
+                            <div class="stat-label">Prueba Gratis</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number">$40/mes</div>
+                            <div class="stat-label">o $5,000 único</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number">∞</div>
+                            <div class="stat-label">Actualizaciones Gratis</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="assets/Untitled (2879 x 1456 px) (921 x 2048 px) (2879 x 1456 px) (500 x 800 px) (800 x 500 px).png" alt="Sistema LogiFlow Pro" class="hero-screenshot">
+                    <div class="floating-card">
+                        <img src="assets/dashboard-preview.png" alt="Dashboard Preview" class="dashboard-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="funcionalidades" class="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">🎯 Marca Blanca Completa</span>
+                <h2 class="section-title">Tu marca, tu identidad, tu sistema</h2>
+                <p class="section-description">
+                    Sistema completamente personalizable con tu logo, colores y marca. 
+                    Tus clientes finales solo ven tu empresa, no la nuestra.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Gestión de Órdenes</h3>
+                    <p class="feature-description">
+                        Crea, edita y rastrea órdenes en tiempo real. Asigna emisores, destinatarios y repartidores con un solo clic.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Multi-Usuario</h3>
+                    <p class="feature-description">
+                        Crea cuentas para empleados y agentes de tu empresa. Gestiona múltiples usuarios desde un panel administrativo central.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">App Móvil con Tu Marca</h3>
+                    <p class="feature-description">
+                        App nativa Android/iOS con tu logo y colores. Tus repartidores usan TU app, no la nuestra. 
+                        Reciben órdenes, actualizan estados, chat en tiempo real.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Gestión de Emisores/Destinatarios</h3>
+                    <p class="feature-description">
+                        Base de datos completa de emisores y destinatarios. Historial de envíos, datos de contacto, direcciones.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Gestión de Repartidores</h3>
+                    <p class="feature-description">
+                        Administra tu equipo de repartidores. Asigna órdenes, verifica estados, chat directo, estadísticas de rendimiento.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Chat en Tiempo Real</h3>
+                    <p class="feature-description">
+                        Comunicación instantánea entre admin-repartidores y empresas-soporte. Sistema de tickets y soporte técnico integrado.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Reportes y Estadísticas</h3>
+                    <p class="feature-description">
+                        Visualiza métricas clave: órdenes por estado, rendimiento de repartidores, ingresos, tendencias históricas.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Seguridad Avanzada</h3>
+                    <p class="feature-description">
+                        Autenticación Supabase, RLS (Row Level Security), roles y permisos, datos encriptados, backups automáticos.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(135deg, #fddb92 0%, #d1fdff 100%);">
+                        <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Marca Blanca Completa</h3>
+                    <p class="feature-description">
+                        Tu logo, tu nombre, tus colores en todo el sistema. Tus clientes finales solo ven tu marca, nunca la nuestra.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section id="capturas" class="screenshots">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">📸 Capturas de Pantalla</span>
+                <h2 class="section-title">Interfaz moderna y fácil de usar</h2>
+                <p class="section-description">
+                    Diseño profesional optimizado para productividad y experiencia de usuario
+                </p>
+            </div>
+
+            <div class="screenshots-tabs">
+                <button class="tab-btn active" data-tab="dashboard">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                    </svg>
+                    Dashboard Web
+                </button>
+                <button class="tab-btn" data-tab="mobile">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2z"/>
+                    </svg>
+                    App Repartidor
+                </button>
+                <button class="tab-btn" data-tab="support">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+                    </svg>
+                    Chat Soporte
+                </button>
+                <button class="tab-btn" data-tab="tracking">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
+                    </svg>
+                    Rastreo Clientes
+                </button>
+            </div>
+
+            <div class="screenshots-content">
+                <div class="tab-content active" data-content="dashboard">
+                    <div class="screenshot-showcase">
+                        <div class="screenshot-single">
+                            <img src="assets/dashboard-full.png" alt="Dashboard Web - Panel Administrativo" class="screenshot-img">
+                        </div>
+                        <div class="screenshot-features">
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Panel de control completo</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Gestión de órdenes en tiempo real</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Estadísticas y reportes visuales</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Interfaz responsiva y moderna</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" data-content="mobile">
+                    <div class="screenshot-showcase mobile">
+                        <div class="mobile-gallery">
+                            <div class="mobile-main">
+                                <img src="assets/pantala de inicio.png" alt="App Repartidor - Pantalla Principal" class="screenshot-img-mobile">
+                            </div>
+                            <div class="mobile-thumbnails">
+                                <div class="mobile-thumbnail active" data-src="assets/pantala de inicio.png">
+                                    <img src="assets/pantala de inicio.png" alt="Pantalla de Inicio">
+                                    <span>Inicio</span>
+                                </div>
+                                <div class="mobile-thumbnail" data-src="assets/ordenes.png">
+                                    <img src="assets/ordenes.png" alt="Órdenes">
+                                    <span>Órdenes</span>
+                                </div>
+                                <div class="mobile-thumbnail" data-src="assets/perfil del repartidor.png">
+                                    <img src="assets/perfil del repartidor.png" alt="Perfil">
+                                    <span>Perfil</span>
+                                </div>
+                                <div class="mobile-thumbnail" data-src="assets/escaneo de paquete.png">
+                                    <img src="assets/escaneo de paquete.png" alt="Escaneo">
+                                    <span>Escaneo</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="screenshot-features">
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Pantalla de inicio con órdenes pendientes</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Gestión de órdenes en tiempo real</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Escaneo de códigos QR de paquetes</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Perfil personal del repartidor</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Soporte Section -->
+                <div class="tab-content" data-content="support">
+                    <div class="screenshot-showcase">
+                        <div class="screenshot-gallery">
+                            <div class="screenshot-main">
+                                <img src="assets/soporte con las empresas.png" alt="Chat Soporte - Empresas" class="screenshot-img">
+                            </div>
+                            <div class="screenshot-thumbnails">
+                                <div class="thumbnail active" data-src="assets/soporte con las empresas.png">
+                                    <img src="assets/soporte con las empresas.png" alt="Soporte Empresas">
+                                    <span>Empresas</span>
+                                </div>
+                                <div class="thumbnail" data-src="assets/soporte con repartidores.png">
+                                    <img src="assets/soporte con repartidores.png" alt="Soporte Repartidores">
+                                    <span>Repartidores</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="screenshot-features">
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Chat directo con empresas</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Soporte técnico para repartidores</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Resolución de problemas en tiempo real</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Sistema de tickets organizado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rastreo Clientes Section -->
+                <div class="tab-content" data-content="tracking">
+                    <div class="screenshot-showcase">
+                        <div class="screenshot-single">
+                            <img src="assets/buscar ordenes lo que ven los user:clientes finales.png" alt="Rastreo de Paquetes - Clientes Finales" class="screenshot-img">
+                        </div>
+                        <div class="screenshot-features">
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Rastreo en tiempo real del paquete</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Búsqueda por número de orden</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Detalles completos de la entrega</span>
+                            </div>
+                            <div class="screenshot-feature">
+                                <div class="feature-icon-small">✓</div>
+                                <span>Interfaz marca blanca con tu logo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="precios" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">💎 Inversión Inteligente</span>
+                <h2 class="section-title">Un solo pago. Beneficios de por vida.</h2>
+                <p class="section-description">
+                    Sin mensualidades. Sin sorpresas. Actualiza tu negocio hoy y aprovecha para siempre.
+                </p>
+            </div>
+
+            <div class="pricing-cards">
+                <!-- Plan Mensual -->
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Plan Mensual</h3>
+                        <p class="pricing-subtitle">Paga mes a mes</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">40</span>
+                        <span class="price-period">/mes</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span><strong>1 mes GRATIS</strong> de prueba</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Sin tarjeta de crédito para probar</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Todas las funcionalidades</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Usuarios ilimitados</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Órdenes ilimitadas</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Apps móviles incluidas</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Soporte técnico incluido</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Cancela cuando quieras</span>
+                        </li>
+                    </ul>
+                    <a href="#solicitar-cuenta" class="btn btn-outline btn-block">Comenzar Prueba Gratis</a>
+                </div>
+
+                <!-- Plan De Por Vida -->
+                <div class="pricing-card featured">
+                    <div class="popular-badge">MEJOR INVERSIÓN</div>
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Pago Único de Por Vida</h3>
+                        <p class="pricing-subtitle">Un solo pago, para siempre</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">5,000</span>
+                        <span class="price-period" style="font-size: 0.875rem; display: block; margin-top: 0.5rem;">pago único</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span><strong>1 mes GRATIS</strong> de prueba</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span><strong>Pago único</strong> sin mensualidades</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Actualizaciones <strong>GRATIS para siempre</strong></span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Todas las funcionalidades</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Usuarios ilimitados</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Órdenes ilimitadas</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Apps móviles incluidas</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Logo y branding personalizado</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Soporte técnico prioritario</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span><strong>¡Ahorra $4,800 vs mensual!</strong></span>
+                        </li>
+                    </ul>
+                    <a href="#solicitar-cuenta" class="btn btn-primary btn-block">Comenzar Prueba Gratis</a>
+                </div>
+
+                <!-- Plan Funciones Extra -->
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Funciones Personalizadas</h3>
+                        <p class="pricing-subtitle">Adaptado a tus necesidades</p>
+                    </div>
+                    <div class="pricing-price">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">Variable</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Desarrollo de funciones a medida</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Integraciones con sistemas externos</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Módulos especializados</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Consultoría personalizada</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Migración de datos incluida</span>
+                        </li>
+                        <li>
+                            <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <span>Capacitación personalizada</span>
+                        </li>
+                    </ul>
+                    <a href="#contacto" class="btn btn-outline btn-block">Consultar</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Apps Section -->
+    <section id="descargas" class="download-apps">
+        <div class="container">
+            <div class="download-content">
+                <div class="download-text">
+                    <span class="section-badge">📱 Disponible en Móviles</span>
+                    <h2 class="section-title white">App Móvil con Tu Marca</h2>
+                    <p class="download-description">
+                        App personalizada con tu logo y colores para Android e iOS. Tus repartidores usan TU app, 
+                        no la nuestra. Reciben órdenes, actualizan estados, chatean con soporte desde cualquier lugar.
+                    </p>
+                    <div class="download-buttons">
+                        <a href="#" class="download-btn google-play">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
+                                <path d="M3.609 3.099c-0.157 0.284-0.235 0.621-0.235 0.979v23.844c0 0.357 0.079 0.695 0.235 0.979l11.826-12.902-11.826-12.901z"/>
+                                <path d="M18.932 16l3.735 4.078 5.262-2.881c0.745-0.407 1.236-1.041 1.236-1.818s-0.491-1.411-1.236-1.818l-5.262-2.881-3.735 4.078z"/>
+                                <path d="M4.181 28.641l11.895-11.641-11.895-11.641c0.095 0.025 0.193 0.038 0.294 0.038 0.411 0 0.853-0.156 1.283-0.417l13.174 7.197-3.735 4.078 3.735 4.078-13.174 7.197c-0.431-0.261-0.872-0.417-1.283-0.417-0.101 0-0.199 0.013-0.294 0.038z"/>
+                            </svg>
+                            <div class="download-btn-text">
+                                <span class="small">Descárgalo en</span>
+                                <span class="large">Google Play</span>
+                            </div>
+                        </a>
+                        <a href="#" class="download-btn app-store">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
+                                <path d="M25.826 16.955c-0.025-2.732 2.229-4.049 2.33-4.109-1.269-1.856-3.244-2.111-3.947-2.139-1.681-0.17-3.279 0.99-4.131 0.99-0.852 0-2.169-0.965-3.563-0.939-1.833 0.027-3.523 1.066-4.467 2.708-1.904 3.306-0.487 8.203 1.368 10.888 0.907 1.314 1.988 2.791 3.408 2.739 1.394-0.056 1.921-0.903 3.606-0.903s2.159 0.903 3.563 0.875c1.471-0.025 2.408-1.317 3.31-2.635 1.043-1.525 1.473-3.002 1.499-3.078-0.033-0.015-2.875-1.103-2.902-4.374zM23.063 5.281c0.754-0.914 1.263-2.183 1.124-3.447-1.087 0.044-2.402 0.723-3.181 1.636-0.698 0.808-1.31 2.099-1.145 3.338 1.211 0.094 2.448-0.615 3.202-1.527z"/>
+                            </svg>
+                            <div class="download-btn-text">
+                                <span class="small">Disponible en</span>
+                                <span class="large">App Store</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="download-features">
+                        <div class="download-feature">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                            </svg>
+                            <span>Notificaciones en tiempo real</span>
+                        </div>
+                        <div class="download-feature">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                            </svg>
+                            <span>Chat integrado con soporte</span>
+                        </div>
+                        <div class="download-feature">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                            </svg>
+                            <span>Historial de entregas completo</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="download-image">
+                    <div class="phone-mockup">
+                        <img src="assets/asderr.png" alt="App Repartidor" class="phone-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Request Account Form Section -->
+    <section id="solicitar-cuenta" class="request-account">
+        <div class="container">
+            <div class="request-content">
+                <div class="request-info">
+                    <span class="section-badge">🚀 Comienza Hoy</span>
+                    <h2 class="section-title">Solicita tu cuenta ahora</h2>
+                    <p class="section-description">
+                        Completa el formulario y nos pondremos en contacto contigo en menos de 24 horas 
+                        para activar tu prueba gratuita de 1 mes. Sin compromiso.
+                    </p>
+                    <div class="request-benefits">
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Activación rápida</h4>
+                                <p>Tu cuenta lista en menos de 24 horas</p>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Soporte incluido</h4>
+                                <p>Te ayudamos en la configuración inicial</p>
+                            </div>
+                        </div>
+                        <div class="benefit-item">
+                            <div class="benefit-icon">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                                </svg>
+                            </div>
+                            <div class="benefit-text">
+                                <h4>Sin compromisos</h4>
+                                <p>Cancela cuando quieras durante la prueba</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="request-form-container">
+                    <form id="requestForm" class="request-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nombre">Nombre completo *</label>
+                                <input type="text" id="nombre" name="nombre" required placeholder="Juan Pérez">
+                            </div>
+                            <div class="form-group">
+                                <label for="empresa">Nombre de la empresa *</label>
+                                <input type="text" id="empresa" name="empresa" required placeholder="Mi Empresa S.A.">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Correo electrónico *</label>
+                                <input type="email" id="email" name="email" required placeholder="juan@miempresa.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="telefono">Teléfono *</label>
+                                <input type="tel" id="telefono" name="telefono" required placeholder="+1 234 567 8900">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pais">País *</label>
+                            <select id="pais" name="pais" required>
+                                <option value="">Selecciona tu país</option>
+                                <option value="MX">México</option>
+                                <option value="US">Estados Unidos</option>
+                                <option value="CO">Colombia</option>
+                                <option value="AR">Argentina</option>
+                                <option value="CL">Chile</option>
+                                <option value="PE">Perú</option>
+                                <option value="VE">Venezuela</option>
+                                <option value="EC">Ecuador</option>
+                                <option value="ES">España</option>
+                                <option value="OTHER">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="repartidores">¿Cuántos repartidores tienes actualmente?</label>
+                            <select id="repartidores" name="repartidores">
+                                <option value="">Selecciona una opción</option>
+                                <option value="1-5">1 a 5 repartidores</option>
+                                <option value="6-10">6 a 10 repartidores</option>
+                                <option value="11-25">11 a 25 repartidores</option>
+                                <option value="26-50">26 a 50 repartidores</option>
+                                <option value="50+">Más de 50 repartidores</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mensaje">¿Cómo te ayudará LogiFlow Pro? (Opcional)</label>
+                            <textarea id="mensaje" name="mensaje" rows="4" placeholder="Cuéntanos sobre tus necesidades..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large btn-block">
+                            Solicitar Cuenta Gratuita
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+                            </svg>
+                        </button>
+                        <p class="form-footer">
+                            Al enviar el formulario, aceptas nuestra política de privacidad
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto" class="contact">
+        <div class="container">
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h2 class="section-title">¿Tienes preguntas?</h2>
+                    <p class="section-description">
+                        Estamos aquí para ayudarte. Contáctanos por cualquier medio y te responderemos lo antes posible.
+                    </p>
+                    <div class="contact-methods">
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-text">
+                                <h4>Email</h4>
+                                <a href="mailto:soporte@logiflowpro.com">soporte@logiflowpro.com</a>
+                            </div>
+                        </div>
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-text">
+                                <h4>WhatsApp</h4>
+                                <a href="https://wa.me/1234567890">+1 (234) 567-8900</a>
+                            </div>
+                        </div>
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-text">
+                                <h4>Horario</h4>
+                                <p>Lunes a Viernes: 9:00 AM - 6:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <img src="assets/logo.png" alt="LogiFlow Pro">
+                        <span>LogiFlow Pro</span>
+                    </div>
+                    <p class="footer-description">
+                        Software profesional de gestión logística para empresas de paquetería. 
+                        Moderniza tu negocio con tecnología de vanguardia.
+                    </p>
+                    <div class="footer-social">
+                        <a href="#" class="social-link">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.806 5.18-4.674c.225-.202-.054-.315-.35-.113l-6.395 4.027-2.75-.867c-.596-.187-.606-.596.125-.882l10.75-4.146c.504-.187.945.12.79.89z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Producto</h4>
+                        <ul>
+                            <li><a href="#funcionalidades">Funcionalidades</a></li>
+                            <li><a href="#capturas">Capturas</a></li>
+                            <li><a href="#precios">Precios</a></li>
+                            <li><a href="#descargas">Descargas</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Empresa</h4>
+                        <ul>
+                            <li><a href="#contacto">Contacto</a></li>
+                            <li><a href="#solicitar-cuenta">Solicitar Cuenta</a></li>
+                            <li><a href="#">Términos de Servicio</a></li>
+                            <li><a href="#">Privacidad</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Recursos</h4>
+                        <ul>
+                            <li><a href="#">Documentación</a></li>
+                            <li><a href="#">Tutoriales</a></li>
+                            <li><a href="#">FAQ</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 LogiFlow Pro. Todos los derechos reservados.</p>
+                <p>Desarrollado con ❤️ para empresas de logística modernas</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
+

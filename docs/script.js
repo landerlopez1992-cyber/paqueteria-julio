@@ -408,5 +408,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const ghUrl = location.origin + '/paqueteria-julio/app/';
   // Local default
   const localUrl = 'http://localhost:57563';
-  loginLink.href = isGhPages ? ghUrl : localUrl;
+  if (isGhPages) {
+    // Try to detect if /app/ exists, fallback to root
+    fetch('/paqueteria-julio/app/index.html', { method: 'HEAD' })
+      .then(r => { loginLink.href = r.ok ? ghUrl : (location.origin + '/paqueteria-julio/'); })
+      .catch(() => { loginLink.href = location.origin + '/paqueteria-julio/'; });
+  } else {
+    loginLink.href = localUrl;
+  }
 })();
