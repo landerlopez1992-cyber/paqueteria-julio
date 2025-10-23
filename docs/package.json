@@ -1,0 +1,17 @@
+{
+  "name": "logiflow-pro-landing",
+  "version": "1.0.0",
+  "description": "Landing page para LogiFlow Pro",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "launch": "node server.js"
+  },
+  "keywords": ["landing", "logistics", "flutter", "web"],
+  "author": "LogiFlow Pro",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

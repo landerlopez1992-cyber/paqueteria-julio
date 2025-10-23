@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Landing Page",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/landing_page/server.js",
+            "console": "integratedTerminal",
+            "preLaunchTask": "start-landing-page"
+        },
+        {
+            "name": "Launch Flutter App",
+            "type": "dart",
+            "request": "launch",
+            "program": "${workspaceFolder}/paqueteria_app/lib/main.dart",
+            "args": ["--web-port", "57563"]
+        }
+    ]
+}
